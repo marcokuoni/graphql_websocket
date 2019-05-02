@@ -1,0 +1,28 @@
+{
+    "name": "concrete5/zend-queue",
+    "description": "PHP7 compatible version of the zend component that provides a factory function to create specific queue client objects",
+    "type": "library",
+    "license": "BSD-3-Clause",
+    "keywords": [
+        "zf2",
+        "queue"
+    ],
+    "homepage": "http://packages.zendframework.com/",
+    "autoload": {
+        "psr-0": {
+            "ZendQueue": "library/"
+        }
+    },
+    "require-dev": {
+        "zendframework/zend-config": "~2",
+        "zendframework/zend-db": "~2",
+        "zendframework/zend-json": "~2"
+    },
+    "require": {
+        "php": ">=5.3.3",
+        "zendframework/zend-stdlib": "~2"
+    },
+    "suggest": {
+        "zendframework/zend-db": "Zend\\Db required if you are using the DB queue adapter"
+    }
+}

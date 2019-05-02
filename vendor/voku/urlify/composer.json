@@ -1,0 +1,31 @@
+{
+  "name": "voku/urlify",
+  "type": "library",
+  "description": "PHP port of URLify.js from the Django project. Transliterates non-ascii characters for use in URLs.",
+  "keywords": ["urlify", "transliterate", "translit", "transliteration", "url", "encode", "slug", "link", "iconv"],
+  "homepage": "https://github.com/voku/urlify",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Johnny Broadway",
+      "email": "johnny@johnnybroadway.com",
+      "homepage": "http://www.johnnybroadway.com/"
+    },
+    {
+      "name": "Lars Moelleken",
+      "email": "lars@moelleken.org",
+      "homepage": "http://moelleken.org/"
+    }
+  ],
+  "require": {
+    "php": ">=5.3",
+    "voku/portable-utf8": "~1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "4.*",
+    "satooshi/php-coveralls": "0.7.*@dev"
+  },
+  "autoload": {
+    "psr-0": {"URLify": ""}
+  }
+}
