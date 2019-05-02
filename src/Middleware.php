@@ -6,7 +6,6 @@ use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Http\Middleware\DelegateInterface;
 use Concrete\Core\Http\Middleware\MiddlewareInterface;
 use Symfony\Component\HttpFoundation\Request;
-use Concrete5GraphqlWebsocket\GraphQl\Websocket;
 
 /**
  * Custom middleware that adds information to the response
@@ -32,8 +31,6 @@ class Middleware implements MiddlewareInterface
     {
         // Get the response object from the next middleware
         $response = $frame->next($request);
-
-        Websocket::run();
 
         // Set the custom headers
         $response->headers->add([

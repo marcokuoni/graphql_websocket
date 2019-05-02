@@ -7,6 +7,7 @@ use Custom\Space\Middleware;
 use Page;
 use SinglePage;
 use Route;
+use Concrete5GraphqlWebsocket\GraphQl\Websocket;
 
 class Controller extends Package
 {
@@ -29,6 +30,8 @@ class Controller extends Package
             // Add our custom middleware
             return $server->addMiddleware($this->app->make(Middleware::class));
         });
+
+        Websocket::run();
     }
 	
     public function install() {
