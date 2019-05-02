@@ -1,5 +1,5 @@
 <?php
-namespace Concrete\Package\SampleComposerPackage;
+namespace Concrete\Package\GraphqlWebsocket;
 
 use Concrete\Core\Http\ServerInterface;
 use Concrete\Core\Package\Package;
