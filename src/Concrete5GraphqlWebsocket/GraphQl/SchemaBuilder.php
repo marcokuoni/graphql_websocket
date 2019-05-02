@@ -1,5 +1,5 @@
 <?php
-namespace Concrete\Package\Concrete5GraphqlWebsocket\Core\GraphQl;
+namespace Concrete5GraphqlWebsocket\GraphQl;
 
 use Siler\GraphQL as SilerGraphQL;
 
@@ -121,8 +121,7 @@ class SchemaBuilder
     public static function hasSchema()
     {
         self::refreshSchemaMerge();
-        $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
-        return ($typeDefs != '' && count(self::$resolver) > 0);
+        return (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName) && count(self::$resolver) > 0);
     }
 
     public static function get()

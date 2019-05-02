@@ -2,7 +2,7 @@
 namespace Concrete\Package\Concrete5GraphqlWebsocket\Controller\SinglePage\Dashboard\System\Environment;
 
 use Concrete\Core\Page\Controller\DashboardPageController;
-use Concrete\Package\Concrete5GraphqlWebsocket\Core\GraphQL\SchemaBuilder;
+use Concrete5GraphqlWebsocket\GraphQL\SchemaBuilder;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Utility\Service\Validation\Numbers;
 use Exception;

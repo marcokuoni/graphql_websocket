@@ -16,6 +16,9 @@ class Controller extends Package
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
     protected $pkg;
+    protected $pkgAutoloaderRegistries = array(
+        'src/Concrete5GraphqlWebsocket/GraphQl' => '\Concrete5GraphqlWebsocket\GraphQl',
+    );
 
     public function on_start()
     {

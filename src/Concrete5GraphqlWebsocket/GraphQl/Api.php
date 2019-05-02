@@ -1,5 +1,5 @@
 <?php
-namespace Concrete\Package\Concrete5GraphqlWebsocket\Core\GraphQl;
+namespace Concrete5GraphqlWebsocket\GraphQl;
 
 use Concrete\Core\Controller\Controller;
 use Siler\GraphQL as SilerGraphQL;
