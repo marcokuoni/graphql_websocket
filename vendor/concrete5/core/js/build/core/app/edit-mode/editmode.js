@@ -1,10 +1,15 @@
-(function (window, $, _, Concrete) {
+/* jshint unused:vars, undef:true, browser:true, jquery:true */
+/* global Concrete, ConcreteAlert, ConcreteEvent, ConcreteMenuManager, ConcretePanelManager, ConcreteToolbar, ccmi18n, _, CCM_DISPATCHER_FILENAME, CCM_TOOLS_PATH */
+
+;(function(window, $) {
     'use strict';
+
+    var html = $('html');
 
     /**
      * Edit mode object for managing editing.
      */
-    var EditMode = Concrete.EditMode = function EditMode(options) {
+    var EditMode = Concrete.EditMode = function(options) {
         this.init.call(this, options);
     };
 
@@ -65,7 +70,6 @@
                         {name: 'aID', value: area.getId()},
                         {name: 'bID', value: block.getId()}
                     ],
-                    bID = block.getId(),
                     $container = block.getElem(),
                     prop;
 
@@ -131,6 +135,7 @@
                 // need the file manager menu when editing block design.
 //              ConcreteMenuManager.disable();
                 ConcreteToolbar.disable();
+                ConcreteMenuManager.$clickProxy.hide();
                 $('div.ccm-area').addClass('ccm-area-inline-edit-disabled');
                 block.getElem().addClass('ccm-block-edit-inline-active');
 
@@ -181,7 +186,7 @@
                 if (templates) {
                     for (var k in templates) {
                         postData[postData.length] = {
-                            name: 'arCustomTemplate[' + k + ']',
+                            name: 'arCustomTemplates[' + k + ']',
                             value: templates[k]
                         };
                     }
@@ -193,8 +198,9 @@
 
                 ConcreteMenuManager.disable();
                 ConcreteToolbar.disable();
-                jQuery.fn.dialog.closeAll();
+                $.fn.dialog.closeAll();
 
+                ConcreteMenuManager.$clickProxy.hide();
                 $('div.ccm-area').addClass('ccm-area-inline-edit-disabled');
 
                 $.fn.dialog.showLoader();
@@ -281,7 +287,7 @@
                 });
             });
 
-            var $body = $(window.document.body),
+            var $document = $(window.document),
                 scrolling = false,
                 scroll_buffer = 100;
 
@@ -335,22 +341,22 @@
 
                 if (!scrolling) {
                     // Vertical
-                    scrollLoop(block, $body, 2, 10, function () {
-                        var pos = block.getDraggerPosition().y - $body.scrollTop();
+                    scrollLoop(block, $document, 2, 10, function () {
+                        var pos = block.getDraggerPosition().y - $document.scrollTop();
                         return block.getDragging() && $(window).height() - pos <= scroll_buffer;
                     }, $.fn.scrollTop, 'y');
-                    scrollLoop(block, $body, -2, 10, function () {
-                        var pos = block.getDraggerPosition().y - $body.scrollTop();
+                    scrollLoop(block, $document, -2, 10, function () {
+                        var pos = block.getDraggerPosition().y - $document.scrollTop();
                         return block.getDragging() && pos <= scroll_buffer;
                     }, $.fn.scrollTop, 'y');
 
                     // Horizontal
-                    scrollLoop(block, $body, 2, 10, function () {
-                        var pos = block.getDraggerPosition().x - $body.scrollLeft();
+                    scrollLoop(block, $document, 2, 10, function () {
+                        var pos = block.getDraggerPosition().x - $document.scrollLeft();
                         return block.getDragging() && $(window).width() - pos <= scroll_buffer;
                     }, $.fn.scrollLeft, 'x');
-                    scrollLoop(block, $body, -2, 10, function () {
-                        var pos = block.getDraggerPosition().x - $body.scrollLeft();
+                    scrollLoop(block, $document, -2, 10, function () {
+                        var pos = block.getDraggerPosition().x - $document.scrollLeft();
                         return block.getDragging() && pos <= scroll_buffer;
                     }, $.fn.scrollLeft, 'x');
                 }
@@ -360,7 +366,7 @@
             my.bindEvent('EditModeBlockDragStop', function editModeEditModeBlockDragStopEventHandler(e, data) {
                 Concrete.event.fire('EditModeContenders', []);
                 Concrete.event.fire('EditModeSelectableContender');
-                $('html').removeClass('ccm-block-dragging');
+                html.removeClass('ccm-block-dragging');
 
                 if (data.block instanceof Concrete.BlockType) return;
                 my.scanBlocks();
@@ -403,7 +409,7 @@
             });
 
             my.bindEvent('EditModeBlockDragStart', function editModeEditModeBlockDragStartEventHandler() {
-                $('html').addClass('ccm-block-dragging');
+                html.addClass('ccm-block-dragging');
                 my.setDragging(true);
             });
 
@@ -426,8 +432,6 @@
         },
 
         bindEvent: function editModeBindEvent(event, handler) {
-            var my = this;
-
             return Concrete.event.bind(event, handler);
         },
 
@@ -442,7 +446,7 @@
         },
 
         scanBlocks: function editModeScanBlocks() {
-            var my = this, area, block;
+            var my = this, area;
             my.reset();
 
             $('div.ccm-area').each(function () {
@@ -478,21 +482,14 @@
 
 
             $(element).find('div.ccm-panel-add-block-stack-item').each(function () {
-                var stack, block, me = $(this), dragger = me.find('div.stack-name');
+                var stack, me = $(this), dragger = me.find('.ccm-panel-add-block-stack-item-handle');
                 stack = new Concrete.Stack($(this), my, dragger, next_area);
 
                 stack.setPeper(dragger);
-
-                $(this).find('div.block').each(function () {
-                    var block, me = $(this), dragger = me.find('div.block-name');
-                    block = new Concrete.StackBlock($(this), stack, my, dragger, next_area);
-
-                    block.setPeper(dragger);
-                });
             });
 
             $(element).find('div.ccm-panel-add-clipboard-block-item').each(function () {
-                var block, me = $(this);
+                var me = $(this);
                 new Concrete.DuplicateBlock(me, my, next_area);
             });
 
@@ -623,6 +620,7 @@
             ConcreteMenuManager.enable();
             $('div.ccm-area-edit-inline-active').removeClass('ccm-area-edit-inline-active');
             $('div.ccm-block-edit-inline-active').remove();
+            ConcreteMenuManager.$clickProxy.show();
             $('div.ccm-area').removeClass('ccm-area-inline-edit-disabled');
             $('#ccm-toolbar').css('opacity', 1);
             $('#ccm-inline-toolbar-container').remove();
@@ -635,13 +633,14 @@
         loadInlineEditModeToolbars: function ($container, toolbarHTML) {
 
             $('#ccm-inline-toolbar-container').remove();
-            var $holder = $('<div />', {id: 'ccm-inline-toolbar-container'}).appendTo(document.body);
+            var $holder = $('<div />', {id: 'ccm-inline-toolbar-container'}).appendTo(document.body),
+                $toolbar;
 
             if (toolbarHTML) {
                 $holder.append(toolbarHTML);
-                var $toolbar = $holder.find('.ccm-inline-toolbar');
+                $toolbar = $holder.find('.ccm-inline-toolbar');
             } else {
-                var $toolbar = $container.find('.ccm-inline-toolbar');
+                $toolbar = $container.find('.ccm-inline-toolbar');
                 $toolbar.appendTo($holder);
             }
 
@@ -680,4 +679,4 @@
         }
     };
 
-}(window, jQuery, _, Concrete));
+})(window, jQuery);

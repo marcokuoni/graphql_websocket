@@ -1,21 +1,4 @@
 <?php
-/*
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information, see
- * <http://www.doctrine-project.org>.
- */
 
 namespace Doctrine\DBAL\Migrations\Configuration;
 
@@ -57,17 +40,18 @@ abstract class AbstractFileConfiguration extends Configuration
         'name' => 'setName',
         'migrations_directory' => 'loadMigrationsFromDirectory',
         'migrations' => 'loadMigrations',
+        'custom_template' => 'setCustomTemplate',
     ];
 
     protected function setConfiguration(array $config)
     {
-        foreach($config as $configurationKey => $configurationValue) {
-            if (!isset($this->configurationProperties[$configurationKey])) {
-                $msg = sprintf('Migrations configuration key "%s" does not exists.', $configurationKey);
+        foreach ($config as $configurationKey => $configurationValue) {
+            if ( ! isset($this->configurationProperties[$configurationKey])) {
+                $msg = sprintf('Migrations configuration key "%s" does not exist.', $configurationKey);
                 throw MigrationException::configurationNotValid($msg);
             }
         }
-        foreach($this->configurationProperties as $configurationKey => $configurationSetter) {
+        foreach ($this->configurationProperties as $configurationKey => $configurationSetter) {
             if (isset($config[$configurationKey])) {
                 $this->{$configurationSetter}($config[$configurationKey]);
             }
@@ -93,7 +77,7 @@ abstract class AbstractFileConfiguration extends Configuration
     {
         if (strcasecmp($migrationOrganisation, static::VERSIONS_ORGANIZATION_BY_YEAR) == 0) {
             $this->setMigrationsAreOrganizedByYear();
-        } else if (strcasecmp($migrationOrganisation, static::VERSIONS_ORGANIZATION_BY_YEAR_AND_MONTH) == 0) {
+        } elseif (strcasecmp($migrationOrganisation, static::VERSIONS_ORGANIZATION_BY_YEAR_AND_MONTH) == 0) {
             $this->setMigrationsAreOrganizedByYearAndMonth();
         } else {
             $msg = 'Unknown ' . var_export($migrationOrganisation, true) . ' for configuration "organize_migrations".';
@@ -118,7 +102,7 @@ abstract class AbstractFileConfiguration extends Configuration
         }
         $this->file = $file;
 
-        if (!file_exists($file)) {
+        if ( ! file_exists($file)) {
             throw new \InvalidArgumentException('Given config file does not exist');
         }
 

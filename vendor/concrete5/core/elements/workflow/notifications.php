@@ -8,7 +8,16 @@ if (is_array($workflowList) && !empty($workflowList)) {
         $wr = $wl->getWorkflowRequestObject();
         $wf = $wl->getWorkflowObject();
         $form = '<form data-form="workflow" method="post" action="' . $wl->getWorkflowProgressFormAction() . '">';
-        $text = $wf->getWorkflowProgressCurrentDescription($wl);
+        $text = '';
+        $description = $wr->getWorkflowRequestDescriptionObject();
+        if ($description) {
+            $text = '<p>' . $description->getInContextDescription() . '</p>';
+        }
+        $requester = $wr->getRequesterUserObject();
+        $dateAdded = $wl->getWorkflowProgressDateAdded();
+        if ($requester && $dateAdded) {
+            $text .= '<p><small>' . t(/*i18n: %1$s is a user name, %2$s is a date/time*/'Submitted by %1$s on %2$s', $requester->getUserDisplayName(), $app->make('date')->formatPrettyDateTime($dateAdded)) . '</small></p>';
+        }
 
         $actions = $wl->getWorkflowProgressActions();
         $buttons = [];
@@ -39,7 +48,7 @@ if (is_array($workflowList) && !empty($workflowList)) {
             }
         }
 
-        if ($displayInline) {
+        if (!empty($displayInline)) {
             echo $form;
             echo implode("\n", $buttons);
             echo '</form>';

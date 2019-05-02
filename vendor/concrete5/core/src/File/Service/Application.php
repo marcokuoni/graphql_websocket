@@ -3,7 +3,10 @@ namespace Concrete\Core\File\Service;
 
 use Concrete\Core\File\StorageLocation\StorageLocation;
 use Config;
-use Loader;
+use Concrete\Core\Support\Facade\Application as ApplicationFacade;
+use Concrete\Core\File\Image\BitmapFormat;
+use Concrete\Core\File\Image\Thumbnail\ThumbnailFormatService;
+use Concrete\Core\File\Incoming;
 
 class Application
 {
@@ -27,9 +30,11 @@ class Application
                 $base = REL_DIR_FILES_THUMBNAILS;
                 break;
         }
-
-        $hi = Loader::helper('file');
-        $filename = $hi->replaceExtension($filename, 'jpg');
+        $app = ApplicationFacade::getFacadeApplication();
+        $format = $app->make(ThumbnailFormatService::class)->getFormatForFile($filename);
+        $extension = $app->make(BitmapFormat::class)->getFormatFileExtension($format);
+        $hi = $app->make('helper/file');
+        $filename = $hi->replaceExtension($filename, $extension);
 
         return $base . $this->prefix($prefix, $filename);
     }
@@ -39,9 +44,10 @@ class Application
      */
     public function getIncomingDirectoryContents()
     {
-        $incoming_file_information = array();
-        $fs = StorageLocation::getDefault()->getFileSystemObject();
-        $items = $fs->listContents(REL_DIR_FILES_INCOMING);
+        $app = ApplicationFacade::getFacadeApplication();
+        $incoming = $app->make(Incoming::class);
+        $fs = $incoming->getIncomingFilesystem();
+        $items = $fs->listContents($incoming->getIncomingPath());
 
         return $items;
     }

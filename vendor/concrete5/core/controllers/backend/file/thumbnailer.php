@@ -83,6 +83,7 @@ class Thumbnailer extends \Concrete\Core\Controller\Controller
                 $fv = $file->getVersion($thumbnail['fileVersionID']);
                 if ($fv->getTypeObject()->supportsThumbnails()) {
                     $fv->generateThumbnail($type);
+                    $fv->releaseImagineImage();
                 }
             } elseif ($type = Version::getByHandle($thumbnail['thumbnailTypeHandle'])) {
                 // This is a predefined thumbnail type, lets just call the version->rescan
@@ -90,6 +91,7 @@ class Thumbnailer extends \Concrete\Core\Controller\Controller
 
                 if ($fv->getTypeObject()->supportsThumbnails()) {
                     $fv->generateThumbnail($type);
+                    $fv->releaseImagineImage();
                 }
             }
         } catch (\Exception $e) {
@@ -122,7 +124,7 @@ class Thumbnailer extends \Concrete\Core\Controller\Controller
     private function getDimensions($thumbnail)
     {
         $matches = null;
-        if (preg_match('/ccm_(\d+)x(\d+)(?:_([10]))?/', $thumbnail['thumbnailTypeHandle'], $matches)) {
+        if (preg_match('/^ccm_(\d+)x(\d+)(?:_([10]))?$/', $thumbnail['thumbnailTypeHandle'], $matches)) {
             return array_pad(array_slice($matches, 1), 3, 0);
         }
     }

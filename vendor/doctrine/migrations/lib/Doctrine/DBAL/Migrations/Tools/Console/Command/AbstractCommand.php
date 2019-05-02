@@ -1,21 +1,4 @@
 <?php
-/*
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information, see
- * <http://www.doctrine-project.org>.
- */
 
 namespace Doctrine\DBAL\Migrations\Tools\Console\Command;
 
@@ -26,6 +9,7 @@ use Doctrine\DBAL\Migrations\Configuration\Connection\Loader\ConnectionHelperLoa
 use Doctrine\DBAL\Migrations\Configuration\Connection\Loader\ConnectionConfigurationChainLoader;
 use Doctrine\DBAL\Migrations\OutputWriter;
 use Doctrine\DBAL\Migrations\Tools\Console\Helper\ConfigurationHelper;
+use Doctrine\DBAL\Migrations\Tools\Console\Helper\ConfigurationHelperInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
@@ -103,9 +87,9 @@ abstract class AbstractCommand extends Command
      */
     protected function getMigrationConfiguration(InputInterface $input, OutputInterface $output)
     {
-        if (!$this->migrationConfiguration) {
+        if ( ! $this->migrationConfiguration) {
             if ($this->getHelperSet()->has('configuration')
-                && $this->getHelperSet()->get('configuration') instanceof ConfigurationHelper) {
+                && $this->getHelperSet()->get('configuration') instanceof ConfigurationHelperInterface) {
                 $configHelper = $this->getHelperSet()->get('configuration');
             } else {
                 $configHelper = new ConfigurationHelper($this->getConnection($input), $this->configuration);
@@ -117,20 +101,13 @@ abstract class AbstractCommand extends Command
     }
 
     /**
-     * This method ensure that we stay compatible with symfony console 2.3 by using the deprecated dialog helper
-     * but use the ConfirmationQuestion when available.
-     *
-     * @param $question
+     * @param string $question
      * @param InputInterface $input
      * @param OutputInterface $output
      * @return mixed
      */
     protected function askConfirmation($question, InputInterface $input, OutputInterface $output)
     {
-        if (!$this->getHelperSet()->has('question')) {
-            return $this->getHelper('dialog')->askConfirmation($output, '<question>' . $question . '</question>', false);
-        }
-
         return $this->getHelper('question')->ask($input, $output, new ConfirmationQuestion($question));
     }
 
@@ -141,8 +118,8 @@ abstract class AbstractCommand extends Command
      */
     private function getOutputWriter(OutputInterface $output)
     {
-        if (!$this->outputWriter) {
-            $this->outputWriter = new OutputWriter(function($message) use ($output) {
+        if ( ! $this->outputWriter) {
+            $this->outputWriter = new OutputWriter(function ($message) use ($output) {
                 return $output->writeln($message);
             });
         }
@@ -170,7 +147,7 @@ abstract class AbstractCommand extends Command
                 new ConnectionConfigurationLoader($this->configuration),
             ]
         );
-        $connection = $chainLoader->chosen();
+        $connection  = $chainLoader->chosen();
 
         if ($connection) {
             return $this->connection = $connection;
@@ -178,5 +155,4 @@ abstract class AbstractCommand extends Command
 
         throw new \InvalidArgumentException('You have to specify a --db-configuration file or pass a Database Connection as a dependency to the Migrations.');
     }
-
 }

@@ -3,6 +3,9 @@
 namespace IPLib\Range;
 
 use IPLib\Address\AddressInterface;
+use IPLib\Address\IPv4;
+use IPLib\Address\IPv6;
+use IPLib\Address\Type as AddressType;
 use IPLib\Factory;
 
 /**
@@ -16,14 +19,14 @@ class Subnet implements RangeInterface
     /**
      * Starting address of the range.
      *
-     * @var AddressInterface
+     * @var \IPLib\Address\AddressInterface
      */
     protected $fromAddress;
 
     /**
      * Final address of the range.
      *
-     * @var AddressInterface
+     * @var \IPLib\Address\AddressInterface
      */
     protected $toAddress;
 
@@ -35,10 +38,24 @@ class Subnet implements RangeInterface
     protected $networkPrefix;
 
     /**
+     * The type of the range of this IP range.
+     *
+     * @var int|null
+     */
+    protected $rangeType;
+
+    /**
+     * The 6to4 address IPv6 address range.
+     *
+     * @var self|null
+     */
+    private static $sixToFour;
+
+    /**
      * Initializes the instance.
      *
-     * @param AddressInterface $fromAddress
-     * @param AddressInterface $toAddress
+     * @param \IPLib\Address\AddressInterface $fromAddress
+     * @param \IPLib\Address\AddressInterface $toAddress
      * @param int $networkPrefix
      */
     protected function __construct(AddressInterface $fromAddress, AddressInterface $toAddress, $networkPrefix)
@@ -98,7 +115,7 @@ class Subnet implements RangeInterface
     /**
      * {@inheritdoc}
      *
-     * @see RangeInterface::toString()
+     * @see \IPLib\Range\RangeInterface::toString()
      */
     public function toString($long = false)
     {
@@ -108,7 +125,7 @@ class Subnet implements RangeInterface
     /**
      * {@inheritdoc}
      *
-     * @see RangeInterface::__toString()
+     * @see \IPLib\Range\RangeInterface::__toString()
      */
     public function __toString()
     {
@@ -118,7 +135,7 @@ class Subnet implements RangeInterface
     /**
      * {@inheritdoc}
      *
-     * @see RangeInterface::getAddressType()
+     * @see \IPLib\Range\RangeInterface::getAddressType()
      */
     public function getAddressType()
     {
@@ -128,7 +145,45 @@ class Subnet implements RangeInterface
     /**
      * {@inheritdoc}
      *
-     * @see RangeInterface::contains()
+     * @see \IPLib\Range\RangeInterface::getRangeType()
+     */
+    public function getRangeType()
+    {
+        if ($this->rangeType === null) {
+            $addressType = $this->getAddressType();
+            if ($addressType === AddressType::T_IPv6 && static::get6to4()->containsRange($this)) {
+                $this->rangeType = Factory::rangeFromBoundaries($this->fromAddress->toIPv4(), $this->toAddress->toIPv4())->getRangeType();
+            } else {
+                switch ($addressType) {
+                    case AddressType::T_IPv4:
+                        $defaultType = IPv4::getDefaultReservedRangeType();
+                        $reservedRanges = IPv4::getReservedRanges();
+                        break;
+                    case AddressType::T_IPv6:
+                        $defaultType = IPv6::getDefaultReservedRangeType();
+                        $reservedRanges = IPv6::getReservedRanges();
+                        break;
+                    default:
+                        throw new \Exception('@todo'); // @codeCoverageIgnore
+                }
+                $rangeType = null;
+                foreach ($reservedRanges as $reservedRange) {
+                    $rangeType = $reservedRange->getRangeType($this);
+                    if ($rangeType !== null) {
+                        break;
+                    }
+                }
+                $this->rangeType = $rangeType === null ? $defaultType : $rangeType;
+            }
+        }
+
+        return $this->rangeType === false ? null : $this->rangeType;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Range\RangeInterface::contains()
      */
     public function contains(AddressInterface $address)
     {
@@ -136,9 +191,9 @@ class Subnet implements RangeInterface
         if ($address->getAddressType() === $this->getAddressType()) {
             $cmp = $address->getComparableString();
             $from = $this->getComparableStartString();
-            if (strcmp($cmp, $from) >= 0) {
+            if ($cmp >= $from) {
                 $to = $this->getComparableEndString();
-                if (strcmp($cmp, $to) <= 0) {
+                if ($cmp <= $to) {
                     $result = true;
                 }
             }
@@ -150,7 +205,50 @@ class Subnet implements RangeInterface
     /**
      * {@inheritdoc}
      *
-     * @see RangeInterface::getComparableStartString()
+     * @see \IPLib\Range\RangeInterface::containsRange()
+     */
+    public function containsRange(RangeInterface $range)
+    {
+        $result = false;
+        if ($range->getAddressType() === $this->getAddressType()) {
+            $myStart = $this->getComparableStartString();
+            $itsStart = $range->getComparableStartString();
+            if ($itsStart >= $myStart) {
+                $myEnd = $this->getComparableEndString();
+                $itsEnd = $range->getComparableEndString();
+                if ($itsEnd <= $myEnd) {
+                    $result = true;
+                }
+            }
+        }
+
+        return $result;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Range\RangeInterface::getStartAddress()
+     */
+    public function getStartAddress()
+    {
+        return $this->fromAddress;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Range\RangeInterface::getEndAddress()
+     */
+    public function getEndAddress()
+    {
+        return $this->toAddress;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Range\RangeInterface::getComparableStartString()
      */
     public function getComparableStartString()
     {
@@ -160,10 +258,34 @@ class Subnet implements RangeInterface
     /**
      * {@inheritdoc}
      *
-     * @see RangeInterface::getComparableEndString()
+     * @see \IPLib\Range\RangeInterface::getComparableEndString()
      */
     public function getComparableEndString()
     {
         return $this->toAddress->getComparableString();
+    }
+
+    /**
+     * Get the 6to4 address IPv6 address range.
+     *
+     * @return self
+     */
+    public static function get6to4()
+    {
+        if (self::$sixToFour === null) {
+            self::$sixToFour = self::fromString('2002::/16');
+        }
+
+        return self::$sixToFour;
+    }
+
+    /**
+     * Get subnet prefix.
+     *
+     * @return int
+     */
+    public function getNetworkPrefix()
+    {
+        return $this->networkPrefix;
     }
 }

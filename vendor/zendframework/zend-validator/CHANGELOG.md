@@ -2,6 +2,202 @@
 
 All notable changes to this project will be documented in this file, in reverse chronological order by release.
 
+## 2.11.1 - 2019-01-29
+
+### Added
+
+- [#249](https://github.com/zendframework/zend-validator/pull/249) adds support in the hostname validator for the `.rs` TLD.
+
+### Changed
+
+- [#253](https://github.com/zendframework/zend-validator/pull/253) updates the list of allowed characters for a `DE` domain name to match those published by IDN.
+
+### Deprecated
+
+- Nothing.
+
+### Removed
+
+- Nothing.
+
+### Fixed
+
+- [#256](https://github.com/zendframework/zend-validator/pull/256) fixes hostname validation when omitting the TLD from verification,
+  ensuring validation of the domain segment considers all URI criteria.
+
+## 2.11.0 - 2018-12-13
+
+### Added
+
+- [#237](https://github.com/zendframework/zend-validator/pull/237) adds support for the [PSR-7 UploadedFileInterface](https://www.php-fig.org/psr/psr-7/#uploadedfileinterface)
+  to each of the `Upload` and `UploadFile` validators.
+
+- [#220](https://github.com/zendframework/zend-validator/pull/220) adds image/webp to the list of known image types for the `IsImage` validator.
+
+### Changed
+
+- Nothing.
+
+### Deprecated
+
+- Nothing.
+
+### Removed
+
+- Nothing.
+
+### Fixed
+
+- Nothing.
+
+## 2.10.3 - 2018-12-13
+
+### Added
+
+- Nothing.
+
+### Changed
+
+- Nothing.
+
+### Deprecated
+
+- Nothing.
+
+### Removed
+
+- Nothing.
+
+### Fixed
+
+- [#241](https://github.com/zendframework/zend-validator/pull/241) has the `Hostname` validator return an invalid result early when an empty
+  domain segment is detected.
+
+- [#232](https://github.com/zendframework/zend-validator/pull/232) updates the `Hostname` validator to allow underscores in subdomains.
+
+- [#218](https://github.com/zendframework/zend-validator/pull/218) fixes a precision issue with the `Step` validator.
+
+## 2.10.2 - 2018-02-01
+
+### Added
+
+- [#202](https://github.com/zendframework/zend-validator/pull/202) adds the
+  ability to use custom constant types in extensions of
+  `Zend\Validator\CreditCard`, fixing an issue where users were unable to add
+  new brands as they are created.
+
+- [#203](https://github.com/zendframework/zend-validator/pull/203) adds support
+  for the new Russian bank card "Mir".
+
+- [#204](https://github.com/zendframework/zend-validator/pull/204) adds support
+  to the IBAN validator for performing SEPA validation against Croatia and San
+  Marino.
+
+- [#209](https://github.com/zendframework/zend-validator/pull/209) adds
+  documentation for the `Explode` validator.
+
+### Changed
+
+- Nothing.
+
+### Deprecated
+
+- Nothing.
+
+### Removed
+
+- Nothing.
+
+### Fixed
+
+- [#195](https://github.com/zendframework/zend-validator/pull/195) adds
+  missing `GpsPoint` validator entries to the `ValidatorPluginManager`, ensuring
+  they may be retrieved from it correctly.
+
+- [#212](https://github.com/zendframework/zend-validator/pull/212) updates the
+  `CSRF` validator to automatically mark any non-string values as invalid,
+  preventing errors such as array to string conversion.
+
+## 2.10.1 - 2017-08-22
+
+### Added
+
+- Nothing.
+
+### Changed
+
+- Nothing.
+
+### Deprecated
+
+- Nothing.
+
+### Removed
+
+- Nothing.
+
+### Fixed
+
+- [#194](https://github.com/zendframework/zend-validator/pull/194) modifies the
+  `EmailAddress` validator to omit the `INTL_IDNA_VARIANT_UTS46` flag to
+  `idn_to_utf8()` if the constant is not defined, fixing an issue on systems
+  using pre-2012 releases of libicu.
+
+## 2.10.0 - 2017-08-14
+
+### Added
+
+- [#175](https://github.com/zendframework/zend-validator/pull/175) adds support
+  for PHP 7.2 (conditionally, as PHP 7.2 is currently in beta1).
+
+- [#157](https://github.com/zendframework/zend-validator/pull/157) adds a new
+  validator, `IsCountable`, which allows validating:
+  - if a value is countable
+  - if a countable value exactly matches a configured count
+  - if a countable value is greater than a configured minimum count
+  - if a countable value is less than a configured maximum count
+  - if a countable value is between configured minimum and maximum counts
+
+### Changed
+
+- [#169](https://github.com/zendframework/zend-validator/pull/169) modifies how
+  the various `File` validators check for readable files. Previously, they used
+  `stream_resolve_include_path`, which led to false negative checks when the
+  files did not exist within an `include_path` (which is often the case within a
+  web application). These now use `is_readable()` instead.
+
+- [#185](https://github.com/zendframework/zend-validator/pull/185) updates the
+  zend-session requirement (during development, and in the suggestions) to 2.8+,
+  to ensure compatibility with the upcoming PHP 7.2 release.
+
+- [#187](https://github.com/zendframework/zend-validator/pull/187) updates the
+  `Between` validator to **require** that both a `min` and a `max` value are
+  provided to the constructor, and that both are of the same type (both
+  integer/float values and/or both string values). This fixes issues that could
+  previously occur when one or the other was not set, but means an exception
+  will now be raised during instantiation (versus runtime during `isValid()`).
+
+- [#188](https://github.com/zendframework/zend-validator/pull/188) updates the
+  `ConfigProvider` to alias the service name `ValidatorManager` to the class
+  `Zend\Validator\ValidatorPluginManager`, and now maps the the latter class to
+  the `ValidatorPluginManagerFactory`. Previously, we mapped the service name
+  directly to the factory. Usage should not change for anybody at this point.
+
+### Deprecated
+
+- Nothing.
+
+### Removed
+
+- [#175](https://github.com/zendframework/zend-validator/pull/175) removes
+  support for HHVM.
+
+### Fixed
+
+- [#160](https://github.com/zendframework/zend-validator/pull/160) fixes how the
+  `EmailAddress` validator handles the local part of an address, allowing it to
+  support unicode.
+
 ## 2.9.2 - 2017-07-20
 
 ### Added

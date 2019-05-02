@@ -1,29 +1,13 @@
 <?php
-/*
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information, see
- * <http://www.doctrine-project.org>.
- */
 
 namespace Doctrine\DBAL\Migrations;
 
-use Doctrine\DBAL\Types\Type;
 use Doctrine\DBAL\Migrations\Configuration\Configuration;
+use Doctrine\DBAL\Migrations\Event\MigrationsVersionEventArgs;
 use Doctrine\DBAL\Migrations\Provider\LazySchemaDiffProvider;
 use Doctrine\DBAL\Migrations\Provider\SchemaDiffProvider;
 use Doctrine\DBAL\Migrations\Provider\SchemaDiffProviderInterface;
+use Doctrine\DBAL\Types\Type;
 
 /**
  * Class which wraps a migration version and allows execution of the
@@ -41,7 +25,7 @@ class Version
     const STATE_EXEC = 2;
     const STATE_POST = 3;
 
-    const DIRECTION_UP = 'up';
+    const DIRECTION_UP   = 'up';
     const DIRECTION_DOWN = 'down';
 
     /**
@@ -61,7 +45,7 @@ class Version
     /**
      * The version in timestamp format (YYYYMMDDHHMMSS)
      *
-     * @param int
+     * @var string
      */
     private $version;
 
@@ -102,22 +86,24 @@ class Version
     /** @var SchemaDiffProviderInterface */
     private $schemaProvider;
 
-    public function __construct(Configuration $configuration, $version, $class, SchemaDiffProviderInterface $schemaProvider=null)
+    public function __construct(Configuration $configuration, $version, $class, SchemaDiffProviderInterface $schemaProvider = null)
     {
         $this->configuration = $configuration;
-        $this->outputWriter = $configuration->getOutputWriter();
-        $this->class = $class;
-        $this->connection = $configuration->getConnection();
-        $this->migration = new $class($this);
-        $this->version = $version;
+        $this->outputWriter  = $configuration->getOutputWriter();
+        $this->class         = $class;
+        $this->connection    = $configuration->getConnection();
+        $this->migration     = new $class($this);
+        $this->version       = $version;
 
         if ($schemaProvider !== null) {
             $this->schemaProvider = $schemaProvider;
         }
-        if($schemaProvider === null) {
-            $schemaProvider = new SchemaDiffProvider($this->connection->getSchemaManager(),
-                $this->connection->getDatabasePlatform());
-            $this->schemaProvider = LazySchemaDiffProvider::fromDefaultProxyFacyoryConfiguration($schemaProvider);
+        if ($schemaProvider === null) {
+            $schemaProvider       = new SchemaDiffProvider(
+                $this->connection->getSchemaManager(),
+                $this->connection->getDatabasePlatform()
+            );
+            $this->schemaProvider = LazySchemaDiffProvider::fromDefaultProxyFactoryConfiguration($schemaProvider);
         }
     }
 
@@ -163,7 +149,7 @@ class Version
         $this->configuration->createMigrationTable();
         $this->connection->$action(
             $this->configuration->getMigrationsTableName(),
-            [$this->configuration->getMigrationsColumnName() => $this->version]
+            [$this->configuration->getQuotedMigrationsColumnName() => $this->version]
         );
     }
 
@@ -184,14 +170,14 @@ class Version
         if (is_array($sql)) {
             foreach ($sql as $key => $query) {
                 $this->sql[] = $query;
-                if (!empty($params[$key])) {
-                    $queryTypes = isset($types[$key]) ? $types[$key] : [];
+                if ( ! empty($params[$key])) {
+                    $queryTypes = $types[$key] ?? [];
                     $this->addQueryParams($params[$key], $queryTypes);
                 }
             }
         } else {
             $this->sql[] = $sql;
-            if (!empty($params)) {
+            if ( ! empty($params)) {
                 $this->addQueryParams($params, $types);
             }
         }
@@ -203,9 +189,9 @@ class Version
      */
     private function addQueryParams($params, $types)
     {
-        $index = count($this->sql) - 1;
+        $index                = count($this->sql) - 1;
         $this->params[$index] = $params;
-        $this->types[$index] = $types;
+        $this->types[$index]  = $types;
     }
 
     /**
@@ -215,6 +201,7 @@ class Version
      * @param string $direction The direction to execute.
      *
      * @return boolean $written
+     * @throws MigrationException
      */
     public function writeSqlFile($path, $direction = self::DIRECTION_UP)
     {
@@ -227,14 +214,13 @@ class Version
         $this->outputWriter->write("\n-- Version " . $this->version . "\n");
 
         $sqlQueries = [$this->version => $queries];
-        $sqlWriter = new SqlFileWriter(
-            $this->configuration->getMigrationsColumnName(),
-            $this->configuration->getMigrationsTableName(),
-            $path,
-            $this->outputWriter
-        );
 
-        return $sqlWriter->write($sqlQueries, $direction);
+        /*
+         * Since the configuration object changes during the creation we cannot inject things
+         * properly, so I had to violate LoD here (so please, let's find a way to solve it on v2).
+         */
+        return $this->configuration->getQueryWriter()
+                                   ->write($path, $direction, $sqlQueries);
     }
 
     /**
@@ -262,6 +248,8 @@ class Version
      */
     public function execute($direction, $dryRun = false, $timeAllQueries = false)
     {
+        $this->dispatchEvent(Events::onMigrationsVersionExecuting, $direction, $dryRun);
+
         $this->sql = [];
 
         $transaction = $this->migration->isTransactional();
@@ -274,7 +262,7 @@ class Version
             $migrationStart = microtime(true);
 
             $this->state = self::STATE_PRE;
-            $fromSchema = $this->schemaProvider->createFromSchema();
+            $fromSchema  = $this->schemaProvider->createFromSchema();
 
             $this->migration->{'pre' . ucfirst($direction)}($fromSchema);
 
@@ -296,7 +284,7 @@ class Version
             $this->state = self::STATE_POST;
             $this->migration->{'post' . ucfirst($direction)}($toSchema);
 
-            if (! $dryRun) {
+            if ( ! $dryRun) {
                 if ($direction === self::DIRECTION_UP) {
                     $this->markMigrated();
                 } else {
@@ -305,7 +293,7 @@ class Version
             }
 
             $migrationEnd = microtime(true);
-            $this->time = round($migrationEnd - $migrationStart, 2);
+            $this->time   = round($migrationEnd - $migrationStart, 2);
             if ($direction === self::DIRECTION_UP) {
                 $this->outputWriter->write(sprintf("\n  <info>++</info> migrated (%ss)", $this->time));
             } else {
@@ -318,6 +306,8 @@ class Version
             }
 
             $this->state = self::STATE_NONE;
+
+            $this->dispatchEvent(Events::onMigrationsVersionExecuted, $direction, $dryRun);
 
             return $this->sql;
         } catch (SkipMigrationException $e) {
@@ -335,16 +325,19 @@ class Version
                 }
             }
 
-            $this->outputWriter->write(sprintf("\n  <info>SS</info> skipped (Reason: %s)",  $e->getMessage()));
+            $this->outputWriter->write(sprintf("\n  <info>SS</info> skipped (Reason: %s)", $e->getMessage()));
 
             $this->state = self::STATE_NONE;
 
+            $this->dispatchEvent(Events::onMigrationsVersionSkipped, $direction, $dryRun);
+
             return [];
         } catch (\Exception $e) {
-
             $this->outputWriter->write(sprintf(
                 '<error>Migration %s failed during %s. Error %s</error>',
-                $this->version, $this->getExecutionState(), $e->getMessage()
+                $this->version,
+                $this->getExecutionState(),
+                $e->getMessage()
             ));
 
             if ($transaction) {
@@ -353,6 +346,7 @@ class Version
             }
 
             $this->state = self::STATE_NONE;
+
             throw $e;
         }
     }
@@ -374,7 +368,7 @@ class Version
     private function outputQueryTime($queryStart, $timeAllQueries = false)
     {
         if ($timeAllQueries !== false) {
-            $queryEnd = microtime(true);
+            $queryEnd  = microtime(true);
             $queryTime = round($queryEnd - $queryStart, 4);
 
             $this->outputWriter->write(sprintf("  <info>%ss</info>", $queryTime));
@@ -398,16 +392,15 @@ class Version
 
     private function executeRegisteredSql($dryRun = false, $timeAllQueries = false)
     {
-        if (! $dryRun) {
-            if (!empty($this->sql)) {
+        if ( ! $dryRun) {
+            if ( ! empty($this->sql)) {
                 foreach ($this->sql as $key => $query) {
                     $queryStart = microtime(true);
 
+                    $this->outputSqlQuery($key, $query);
                     if ( ! isset($this->params[$key])) {
-                        $this->outputWriter->write('     <comment>-></comment> ' . $query);
                         $this->connection->executeQuery($query);
                     } else {
-                        $this->outputWriter->write(sprintf('    <comment>-</comment> %s (with parameters)', $query));
                         $this->connection->executeQuery($query, $this->params[$key], $this->types[$key]);
                     }
 
@@ -436,8 +429,8 @@ class Version
     private function outputSqlQuery($idx, $query)
     {
         $params = $this->formatParamsForOutput(
-            isset($this->params[$idx]) ? $this->params[$idx] : [],
-            isset($this->types[$idx]) ? $this->types[$idx] : []
+            $this->params[$idx] ?? [],
+            $this->types[$idx] ?? []
         );
 
         $this->outputWriter->write(rtrim(sprintf(
@@ -450,8 +443,8 @@ class Version
     /**
      * Formats a set of sql parameters for output with dry run.
      *
-     * @param $params The query parameters
-     * @param $types The types of the query params. Default type is a string
+     * @param array $params The query parameters
+     * @param array $types The types of the query params. Default type is a string
      * @return string|null a string of the parameters present.
      */
     private function formatParamsForOutput(array $params, array $types)
@@ -460,14 +453,52 @@ class Version
             return '';
         }
 
-        $platform = $this->connection->getDatabasePlatform();
         $out = [];
         foreach ($params as $key => $value) {
-            $type = isset($types[$key]) ? $types[$key] : 'string';
-            $outval = Type::getType($type)->convertToDatabaseValue($value, $platform);
-            $out[] = is_string($key) ? sprintf(':%s => %s', $key, $outval) : $outval;
+            $type   = $types[$key] ?? 'string';
+            $outval = '[' . $this->formatParameter($value, $type) . ']';
+            $out[]  = is_string($key) ? sprintf(':%s => %s', $key, $outval) : $outval;
         }
 
         return sprintf('with parameters (%s)', implode(', ', $out));
+    }
+
+    private function dispatchEvent($eventName, $direction, $dryRun)
+    {
+        $this->configuration->dispatchEvent($eventName, new MigrationsVersionEventArgs(
+            $this,
+            $this->configuration,
+            $direction,
+            $dryRun
+        ));
+    }
+
+    private function formatParameter($value, string $type) : ?string
+    {
+        if (Type::hasType($type)) {
+            return Type::getType($type)->convertToDatabaseValue(
+                $value,
+                $this->connection->getDatabasePlatform()
+            );
+        }
+
+        return $this->parameterToString($value);
+    }
+
+    private function parameterToString($value) : string
+    {
+        if (is_array($value)) {
+            return implode(', ', array_map([$this, 'parameterToString'], $value));
+        }
+
+        if (is_int($value) || is_string($value)) {
+            return (string) $value;
+        }
+
+        if (is_bool($value)) {
+            return $value === true ? 'true' : 'false';
+        }
+
+        return '?';
     }
 }

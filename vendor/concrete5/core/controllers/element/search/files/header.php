@@ -3,7 +3,6 @@ namespace Concrete\Controller\Element\Search\Files;
 
 use Concrete\Core\Controller\ElementController;
 use Concrete\Core\Entity\Search\Query;
-use Concrete\Core\Search\ProviderInterface;
 
 class Header extends ElementController
 {
@@ -38,6 +37,7 @@ class Header extends ElementController
         $this->set('query', $this->query);
         $this->set('form', \Core::make('helper/form'));
         $this->set('token', \Core::make('token'));
+        $this->set('breadcrumbClass', 'ccm-file-manager-breadcrumb');
     }
 
 }

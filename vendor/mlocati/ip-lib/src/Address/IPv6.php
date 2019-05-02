@@ -51,6 +51,13 @@ class IPv6 implements AddressInterface
     protected $rangeType;
 
     /**
+     * An array containing RFC designated address ranges.
+     *
+     * @var array|null
+     */
+    private static $reservedRanges = null;
+
+    /**
      * Initializes the instance.
      *
      * @param string $longAddress
@@ -77,6 +84,7 @@ class IPv6 implements AddressInterface
     {
         $result = null;
         if (is_string($address) && strpos($address, ':') !== false && strpos($address, ':::') === false) {
+            $matches = null;
             if ($mayIncludePort && $address[0] === '[' && preg_match('/^\[(.+)\]:\d+$/', $address, $matches)) {
                 $address = $matches[1];
             }
@@ -206,7 +214,7 @@ class IPv6 implements AddressInterface
     /**
      * {@inheritdoc}
      *
-     * @see AddressInterface::toString()
+     * @see \IPLib\Address\AddressInterface::toString()
      */
     public function toString($long = false)
     {
@@ -225,6 +233,7 @@ class IPv6 implements AddressInterface
                         $this->getWords()
                     );
                     $shortAddress = implode(':', $chunks);
+                    $matches = null;
                     for ($i = 8; $i > 1; --$i) {
                         $search = '(?:^|:)'.rtrim(str_repeat('0:', $i), ':').'(?:$|:)';
                         if (preg_match('/^(.*?)'.$search.'(.*)$/', $shortAddress, $matches)) {
@@ -244,7 +253,7 @@ class IPv6 implements AddressInterface
     /**
      * {@inheritdoc}
      *
-     * @see AddressInterface::__toString()
+     * @see \IPLib\Address\AddressInterface::__toString()
      */
     public function __toString()
     {
@@ -254,7 +263,7 @@ class IPv6 implements AddressInterface
     /**
      * {@inheritdoc}
      *
-     * @see AddressInterface::getBytes()
+     * @see \IPLib\Address\AddressInterface::getBytes()
      */
     public function getBytes()
     {
@@ -292,7 +301,7 @@ class IPv6 implements AddressInterface
     /**
      * {@inheritdoc}
      *
-     * @see AddressInterface::getAddressType()
+     * @see \IPLib\Address\AddressInterface::getAddressType()
      */
     public function getAddressType()
     {
@@ -302,66 +311,103 @@ class IPv6 implements AddressInterface
     /**
      * {@inheritdoc}
      *
-     * @see AddressInterface::getRangeType()
+     * @see \IPLib\Address\AddressInterface::getDefaultReservedRangeType()
+     */
+    public static function getDefaultReservedRangeType()
+    {
+        return RangeType::T_RESERVED;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Address\AddressInterface::getReservedRanges()
+     */
+    public static function getReservedRanges()
+    {
+        if (self::$reservedRanges === null) {
+            $reservedRanges = array();
+            foreach (array(
+                // RFC 4291
+                '::/128' => array(RangeType::T_UNSPECIFIED),
+                // RFC 4291
+                '::1/128' => array(RangeType::T_LOOPBACK),
+                // RFC 4291
+                '100::/8' => array(RangeType::T_DISCARD, array('100::/64' => RangeType::T_DISCARDONLY)),
+                //'2002::/16' => array(RangeType::),
+                // RFC 4291
+                '2000::/3' => array(RangeType::T_PUBLIC),
+                // RFC 4193
+                'fc00::/7' => array(RangeType::T_PRIVATENETWORK),
+                // RFC 4291
+                'fe80::/10' => array(RangeType::T_LINKLOCAL_UNICAST),
+                // RFC 4291
+                'ff00::/8' => array(RangeType::T_MULTICAST),
+                // RFC 4291
+                //'::/8' => array(RangeType::T_RESERVED),
+                // RFC 4048
+                //'200::/7' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'400::/6' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'800::/5' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'1000::/4' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'4000::/3' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'6000::/3' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'8000::/3' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'a000::/3' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'c000::/3' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'e000::/4' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'f000::/5' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'f800::/6' => array(RangeType::T_RESERVED),
+                // RFC 4291
+                //'fe00::/9' => array(RangeType::T_RESERVED),
+                // RFC 3879
+                //'fec0::/10' => array(RangeType::T_RESERVED),
+            ) as $range => $data) {
+                $exceptions = array();
+                if (isset($data[1])) {
+                    foreach ($data[1] as $exceptionRange => $exceptionType) {
+                        $exceptions[] = new AssignedRange(Subnet::fromString($exceptionRange), $exceptionType);
+                    }
+                }
+                $reservedRanges[] = new AssignedRange(Subnet::fromString($range), $data[0], $exceptions);
+            }
+            self::$reservedRanges = $reservedRanges;
+        }
+
+        return self::$reservedRanges;
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Address\AddressInterface::getRangeType()
      */
     public function getRangeType()
     {
         if ($this->rangeType === null) {
-            switch (true) {
-                // ::/128 - rfc4291
-                case $this->longAddress === '0000:0000:0000:0000:0000:0000:0000:0000':
-                    $this->rangeType = RangeType::T_UNSPECIFIED;
-                    break;
-                // ::1/128 - rfc4291
-                case $this->longAddress === '0000:0000:0000:0000:0000:0000:0000:0001':
-                    $this->rangeType = RangeType::T_LOOPBACK;
-                    break;
-                // 100::/64 - rfc4291
-                case strpos($this->longAddress, '0100:0000:0000:0000') === 0:
-                    $this->rangeType = RangeType::T_DISCARDONLY;
-                    break;
-                // 100::/8 - rfc4291
-                case strpos($this->longAddress, '01') === 0:
-                    $this->rangeType = RangeType::T_DISCARD;
-                    break;
-                // 2002::/16 - rfc4291
-                case strpos($this->longAddress, '2002') === 0:
-                    $this->rangeType = $this->toIPv4()->getRangeType();
-                    break;
-                // 2000::/3 - rfc4291
-                case $this->matches(Subnet::fromString('2000::/3')):
-                    $this->rangeType = RangeType::T_PUBLIC; // Unicast global addresses
-                    break;
-                // fc00::/7 - rfc4193
-                case $this->matches(Subnet::fromString('fc00::/7')):
-                    $this->rangeType = RangeType::T_PRIVATENETWORK;
-                    break;
-                // fe80::/10 - rfc4291
-                case $this->matches(Subnet::fromString('fe80::/10')):
-                    $this->rangeType = RangeType::T_LINKLOCAL_UNICAST;
-                    break;
-                // ff00::/8 - rfc4291
-                case strpos($this->longAddress, 'ff') === 0:
-                    $this->rangeType = RangeType::T_MULTICAST;
-                    break;
-                // ::/8 - rfc4291
-                // 200::/7 - rfc4048
-                // 400::/6 - rfc4291
-                // 800::/5 - rfc4291
-                // 1000::/4 - rfc4291
-                // 4000::/3 - rfc4291
-                // 6000::/3 - rfc4291
-                // 8000::/3 - rfc4291
-                // a000::/3 - rfc4291
-                // c000::/3 - rfc4291
-                // e000::/4 - rfc4291
-                // f000::/5 - rfc4291
-                // f800::/6 - rfc4291
-                // fe00::/9 - rfc4291
-                // fec0::/10 - rfc3879
-                default:
-                    $this->rangeType = RangeType::T_RESERVED;
-                    break;
+            $ipv4 = $this->toIPv4();
+            if ($ipv4 !== null) {
+                $this->rangeType = $ipv4->getRangeType();
+            } else {
+                $rangeType = null;
+                foreach (static::getReservedRanges() as $reservedRange) {
+                    $rangeType = $reservedRange->getAddressType($this);
+                    if ($rangeType !== null) {
+                        break;
+                    }
+                }
+                $this->rangeType = $rangeType === null ? static::getDefaultReservedRangeType() : $rangeType;
             }
         }
 
@@ -371,7 +417,7 @@ class IPv6 implements AddressInterface
     /**
      * Create an IPv4 representation of this address (if possible, otherwise returns null).
      *
-     * @return IPv4|null
+     * @return \IPLib\Address\IPv4|null
      */
     public function toIPv4()
     {
@@ -386,7 +432,7 @@ class IPv6 implements AddressInterface
     /**
      * {@inheritdoc}
      *
-     * @see AddressInterface::getComparableString()
+     * @see \IPLib\Address\AddressInterface::getComparableString()
      */
     public function getComparableString()
     {
@@ -396,10 +442,60 @@ class IPv6 implements AddressInterface
     /**
      * {@inheritdoc}
      *
-     * @see AddressInterface::matches()
+     * @see \IPLib\Address\AddressInterface::matches()
      */
     public function matches(RangeInterface $range)
     {
         return $range->contains($this);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Address\AddressInterface::getNextAddress()
+     */
+    public function getNextAddress()
+    {
+        $overflow = false;
+        $words = $this->getWords();
+        for ($i = count($words) - 1; $i >= 0; --$i) {
+            if ($words[$i] === 0xffff) {
+                if ($i === 0) {
+                    $overflow = true;
+                    break;
+                }
+                $words[$i] = 0;
+            } else {
+                ++$words[$i];
+                break;
+            }
+        }
+
+        return $overflow ? null : static::fromWords($words);
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @see \IPLib\Address\AddressInterface::getPreviousAddress()
+     */
+    public function getPreviousAddress()
+    {
+        $overflow = false;
+        $words = $this->getWords();
+        for ($i = count($words) - 1; $i >= 0; --$i) {
+            if ($words[$i] === 0) {
+                if ($i === 0) {
+                    $overflow = true;
+                    break;
+                }
+                $words[$i] = 0xffff;
+            } else {
+                --$words[$i];
+                break;
+            }
+        }
+
+        return $overflow ? null : static::fromWords($words);
     }
 }

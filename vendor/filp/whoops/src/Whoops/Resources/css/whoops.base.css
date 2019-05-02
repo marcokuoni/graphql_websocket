@@ -13,7 +13,6 @@ body {
   }
 
 .panel {
-    overflow-x: hidden;
     overflow-y: scroll;
     height: 100%;
     position: fixed;
@@ -53,7 +52,7 @@ header {
     color: #bebebe;
     font-size: 14px;
   }
-    .exc-title-primary {
+    .exc-title-primary, .exc-title-secondary {
       color: #e95353;
     }
 
@@ -70,6 +69,25 @@ header {
         color: #a29d9d;
         font-weight: 300;
       }
+
+.prev-exc-title {
+  margin: 10px 0;
+}
+
+.prev-exc-title + ul {
+  margin: 0;
+  padding: 0 0 0 20px;
+  line-height: 12px;
+}
+
+.prev-exc-title + ul li {
+  font: 12px "Helvetica Neue", helvetica, arial, sans-serif;
+}
+
+.prev-exc-title + ul li .prev-exc-code {
+  display: inline-block;
+  color: #bebebe;
+}
 
 .details-container {
   left: 30%;
@@ -229,8 +247,6 @@ header {
     }
 
     .code-block {
-      max-height: 345px;
-      overflow: hidden;
       padding: 10px;
       margin: 0;
       border-radius: 6px;
@@ -385,12 +401,14 @@ pre.code-block, code.code-block, .frame-args.code-block, .frame-args.code-block 
 
   .linenums li.current{
     background: rgba(255, 100, 100, .07);
-    padding-top: 4px;
-    padding-left: 1px;
   }
     .linenums li.current.active {
       background: rgba(255, 100, 100, .17);
     }
+
+pre:not(.prettyprinted) {
+  padding-left: 60px;
+}
 
 #plain-exception {
   display: none;
@@ -458,6 +476,39 @@ kbd {
   .left-panel {
     width: 32%;
   }
+}
+
+/* Stack panels */
+@media (max-width: 600px) {
+  .panel {
+    position: static;
+    width: 100%;
+  }
+}
+
+/* Stack details tables */
+@media (max-width: 400px) {
+  .data-table,
+  .data-table tbody,
+  .data-table tbody tr,
+  .data-table tbody td {
+    display: block;
+    width: 100%;
+  }
+
+    .data-table tbody tr:first-child {
+      padding-top: 0;
+    }
+
+      .data-table tbody td:first-child,
+      .data-table tbody td:last-child {
+        padding-left: 0;
+        padding-right: 0;
+      }
+
+      .data-table tbody td:last-child {
+        padding-top: 3px;
+      }
 }
 
 .tooltipped {

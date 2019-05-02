@@ -1,6 +1,7 @@
 <?php
 namespace Concrete\Controller\SinglePage\Dashboard\System\Permissions\Blacklist;
 
+use Concrete\Core\Csv\WriterFactory;
 use Concrete\Core\Error\UserMessageException;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Page\Controller\DashboardPageController;
@@ -165,15 +166,65 @@ class Range extends DashboardPageController
         /* @var IPService $ipService */
         $ranges = $ipService->getRanges($type, $includeExpired);
         $app = $this->app;
+        $config = $this->app->make('config');
+        $bom = $config->get('concrete.export.csv.include_bom') ? $config->get('concrete.charset_bom') : '';
 
         return StreamedResponse::create(
-            function () use ($app, $type, $ranges) {
-                $writer = $app->build(IPRangesCsvWriter::class, ['writer' => Writer::createFromPath('php://output', 'w'), 'type' => $type]);
+            function () use ($app, $type, $ranges, $bom) {
+                $writer = $app->build(IPRangesCsvWriter::class, [
+                    'writer' => $app->make(WriterFactory::class)->createFromPath('php://output', 'w'),
+                    'type' => $type
+                ]);
+                echo $bom;
                 $writer->insertHeaders();
                 $writer->insertRanges($ranges);
             },
             StreamedResponse::HTTP_OK,
             $headers
         );
+    }
+
+    public function clear_data()
+    {
+        if (!$this->token->validate('blacklist-clear-data')) {
+            throw new UserMessageException($this->token->getErrorMessage());
+        }
+        $valn = $this->app->make('helper/validation/numbers');
+        /* @var \Concrete\Core\Utility\Service\Validation\Numbers $valn */
+        $post = $this->request->request;
+
+        $deleteFailedLoginAttempts = $post->get('delete-failed-login-attempts') === 'yes';
+        if ($deleteFailedLoginAttempts) {
+            $deleteFailedLoginAttemptsMinAge = $post->get('delete-failed-login-attempts-min-age');
+            if (!$valn->integer($deleteFailedLoginAttemptsMinAge, 0)) {
+                throw new UserMessageException(t('Please specify a valid number of days.'));
+            }
+            $deleteFailedLoginAttemptsMinAge *= 24 * 60 * 60;
+        }
+        switch ($post->get('delete-automatic-blacklist')) {
+            case 'yes-keep-current':
+                $deleteAutomaticBlacklist = true;
+                $deleteAutomaticBlacklistOnlyExpired = true;
+                break;
+            case 'yes-all':
+                $deleteAutomaticBlacklist = true;
+                $deleteAutomaticBlacklistOnlyExpired = false;
+                break;
+        }
+        $ipService = $this->app->make('ip');
+        /* @var IPService $ipService */
+        $messages = [];
+        if ($deleteFailedLoginAttempts) {
+            $messages[] = t2('%s failed login attempt has been deleted.', '%s failed login attempts have been deleted.', $ipService->deleteFailedLoginAttempts($deleteFailedLoginAttemptsMinAge));
+        }
+        if ($deleteAutomaticBlacklist) {
+            $messages[] = t2('%s automatically banned IP address has been deleted.', '%s automatically banned IP addresses have been deleted.', $ipService->deleteAutomaticBlacklist($deleteAutomaticBlacklistOnlyExpired));
+        }
+        if (empty($messages)) {
+            throw new UserMessageException(t('Please specify what you would like to delete.'));
+        }
+        $this->flash('success', implode("\n", $messages));
+
+        return $this->app->make(ResponseFactoryInterface::class)->json(true);
     }
 }

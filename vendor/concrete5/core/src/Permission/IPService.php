@@ -4,14 +4,25 @@ namespace Concrete\Core\Permission;
 use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Database\Connection\Connection;
 use Concrete\Core\Http\Request;
+use Concrete\Core\Logging\Channels;
+use Concrete\Core\Logging\LoggerAwareInterface;
+use Concrete\Core\Logging\LoggerAwareTrait;
 use Concrete\Core\Utility\IPAddress;
 use DateTime;
 use IPLib\Address\AddressInterface;
 use IPLib\Factory as IPFactory;
 use IPLib\Range\RangeInterface;
 
-class IPService
+class IPService implements LoggerAwareInterface
 {
+
+    use LoggerAwareTrait;
+
+    public function getLoggerChannel()
+    {
+        return Channels::CHANNEL_SECURITY;
+    }
+
     /**
      * Bit mask for blacklist ranges.
      *
@@ -160,6 +171,7 @@ class IPService
                 ',
                 [$ip->getComparableString()]
             );
+            $this->logger->notice(t('Failed login attempt recorded from IP address %s', $ip->toString(), ['ip_address' => $ip->toString()]));
         }
     }
 
@@ -224,6 +236,9 @@ class IPService
                 $expires = null;
             }
             $this->createRange(IPFactory::rangeFromBoundaries($ip, $ip), static::IPRANGETYPE_BLACKLIST_AUTOMATIC, $expires);
+            $this->logger->warning(t('IP address %s added to blacklist.', $ip->toString(), $expires), [
+                'ip_address' => $ip->toString()
+            ]);
         }
     }
 
@@ -357,6 +372,40 @@ class IPService
         $rs->closeCursor();
 
         return $type;
+    }
+
+    /**
+     * Delete the failed login attempts.
+     *
+     * @param int|null $maxAge the maximum age (in seconds) of the records (specify an empty value do delete all records)
+     *
+     * @return int return the number of records deleted
+     */
+    public function deleteFailedLoginAttempts($maxAge = null)
+    {
+        $sql = 'DELETE FROM FailedLoginAttempts';
+        if ($maxAge) {
+            $platform = $this->connection->getDatabasePlatform();
+            $sql .= ' WHERE flaTimestamp <= ' . $platform->getDateSubSecondsExpression($platform->getNowExpression(), (int) $maxAge);
+        }
+
+        return (int) $this->connection->executeQuery($sql)->rowCount();
+    }
+
+    /**
+     * Clear the IP addresses automatically blacklisted.
+     *
+     * @param bool $onlyExpired Clear only the expired bans?
+     */
+    public function deleteAutomaticBlacklist($onlyExpired = true)
+    {
+        $sql = 'DELETE FROM LoginControlIpRanges WHERE lcirType = ' . (int) static::IPRANGETYPE_BLACKLIST_AUTOMATIC;
+        if ($onlyExpired) {
+            $platform = $this->connection->getDatabasePlatform();
+            $sql .= ' AND lcirExpires <= ' . $platform->getNowExpression();
+        }
+
+        return (int) $this->connection->executeQuery($sql)->rowCount();
     }
 
     /**

@@ -1,25 +1,10 @@
 <?php
-/*
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information, see
- * <http://www.doctrine-project.org>.
- */
 
 namespace Doctrine\DBAL\Migrations;
 
 use Doctrine\DBAL\Migrations\Configuration\Configuration;
+use Doctrine\DBAL\Migrations\Event\MigrationsEventArgs;
+use const COUNT_RECURSIVE;
 
 /**
  * Class for running migrations to the current version or a manually specified version.
@@ -55,8 +40,8 @@ class Migration
      */
     public function __construct(Configuration $configuration)
     {
-        $this->configuration = $configuration;
-        $this->outputWriter = $configuration->getOutputWriter();
+        $this->configuration        = $configuration;
+        $this->outputWriter         = $configuration->getOutputWriter();
         $this->noMigrationException = false;
     }
 
@@ -83,9 +68,9 @@ class Migration
      */
     public function writeSqlFile($path, $to = null)
     {
-        $sql = $this->getSql($to);
-
+        $sql  = $this->getSql($to);
         $from = $this->configuration->getCurrentVersion();
+
         if ($to === null) {
             $to = $this->configuration->getLatestVersion();
         }
@@ -94,14 +79,12 @@ class Migration
 
         $this->outputWriter->write(sprintf("-- Migrating from %s to %s\n", $from, $to));
 
-        $sqlWriter = new SqlFileWriter(
-            $this->configuration->getMigrationsColumnName(),
-            $this->configuration->getMigrationsTableName(),
-            $path,
-            $this->outputWriter
-        );
-
-        return $sqlWriter->write($sql, $direction);
+        /*
+         * Since the configuration object changes during the creation we cannot inject things
+         * properly, so I had to violate LoD here (so please, let's find a way to solve it on v2).
+         */
+        return $this->configuration->getQueryWriter()
+                                   ->write($path, $direction, $sql);
     }
 
     /**
@@ -141,11 +124,11 @@ class Migration
          * migrations.
          */
         $migrations = $this->configuration->getMigrations();
-        if (!isset($migrations[$to]) && $to > 0) {
+        if ( ! isset($migrations[$to]) && $to > 0) {
             throw MigrationException::unknownMigrationVersion($to);
         }
 
-        $direction = $from > $to ? Version::DIRECTION_DOWN : Version::DIRECTION_UP;
+        $direction           = $from > $to ? Version::DIRECTION_DOWN : Version::DIRECTION_UP;
         $migrationsToExecute = $this->configuration->getMigrationsToExecute($direction, $to);
 
         /**
@@ -156,51 +139,63 @@ class Migration
          * means we are already at the destination return an empty array()
          * to signify that there is nothing left to do.
          */
-        if ($from === $to && empty($migrationsToExecute) && !empty($migrations)) {
+        if ($from === $to && empty($migrationsToExecute) && ! empty($migrations)) {
             return $this->noMigrations();
         }
 
-        if (!$dryRun && false === $this->migrationsCanExecute($confirm)) {
+        if ( ! $dryRun && false === $this->migrationsCanExecute($confirm)) {
             return [];
         }
 
-        $output = $dryRun ? 'Executing dry run of migration' : 'Migrating';
+        $output  = $dryRun ? 'Executing dry run of migration' : 'Migrating';
         $output .= ' <info>%s</info> to <comment>%s</comment> from <comment>%s</comment>';
         $this->outputWriter->write(sprintf($output, $direction, $to, $from));
 
         /**
          * If there are no migrations to execute throw an exception.
          */
-        if (empty($migrationsToExecute) && !$this->noMigrationException) {
+        if (empty($migrationsToExecute) && ! $this->noMigrationException) {
             throw MigrationException::noMigrationsToExecute();
         } elseif (empty($migrationsToExecute)) {
             return $this->noMigrations();
         }
 
-        $sql = [];
+        $this->configuration->dispatchEvent(
+            Events::onMigrationsMigrating,
+            new MigrationsEventArgs($this->configuration, $direction, $dryRun)
+        );
+
+        $sql  = [];
         $time = 0;
+
         foreach ($migrationsToExecute as $version) {
-            $versionSql = $version->execute($direction, $dryRun, $timeAllQueries);
+            $versionSql                  = $version->execute($direction, $dryRun, $timeAllQueries);
             $sql[$version->getVersion()] = $versionSql;
-            $time += $version->getTime();
+            $time                       += $version->getTime();
         }
+
+        $this->configuration->dispatchEvent(
+            Events::onMigrationsMigrated,
+            new MigrationsEventArgs($this->configuration, $direction, $dryRun)
+        );
 
         $this->outputWriter->write("\n  <comment>------------------------</comment>\n");
         $this->outputWriter->write(sprintf("  <info>++</info> finished in %ss", $time));
         $this->outputWriter->write(sprintf("  <info>++</info> %s migrations executed", count($migrationsToExecute)));
-        $this->outputWriter->write(sprintf("  <info>++</info> %s sql queries", count($sql, true) - count($sql)));
+        $this->outputWriter->write(sprintf("  <info>++</info> %s sql queries", count($sql, COUNT_RECURSIVE) - count($sql)));
 
         return $sql;
     }
 
-    private function noMigrations()
+    private function noMigrations() : array
     {
         $this->outputWriter->write('<comment>No migrations to execute.</comment>');
+
         return [];
     }
 
-    private function migrationsCanExecute(callable $confirm=null)
+    private function migrationsCanExecute(callable $confirm = null) : bool
     {
-        return null === $confirm ? true : $confirm();
+        return null === $confirm ? true : (bool) $confirm();
     }
 }

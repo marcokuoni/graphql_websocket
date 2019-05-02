@@ -22,9 +22,9 @@ class Facebook extends LazyExtractor
 {
 
     /**
-     * Request contants
+     * Request constants
      */
-    const REQUEST_PROFILE = '/me';
+    const REQUEST_PROFILE = '/me?fields=email,name,first_name,last_name'; //new api requires you to ask for the e-mail address
     const REQUEST_IMAGE = '/me/picture?type=large&redirect=false';
 
     /**

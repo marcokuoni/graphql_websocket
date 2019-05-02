@@ -5,6 +5,7 @@ use Concrete\Core\Asset\Asset;
 use Concrete\Core\Asset\Output\StandardFormatter;
 use Concrete\Core\Filesystem\FileLocator;
 use Concrete\Core\Http\ResponseAssetGroup;
+use Concrete\Core\Page\Theme\ThemeRouteCollection;
 use Environment;
 use Events;
 use Concrete\Core\Support\Facade\Facade;
@@ -62,6 +63,14 @@ class View extends AbstractView
     public function setInnerContentFile($innerContentFile)
     {
         $this->innerContentFile = $innerContentFile;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getInnerContentFile()
+    {
+        return $this->innerContentFile;
     }
 
     public function setViewRootDirectoryName($directory)
@@ -132,12 +141,36 @@ class View extends AbstractView
         }
     }
 
+    public function getViewTemplateFile()
+    {
+        $app = Facade::getFacadeApplication();
+        $collection = $app->make(ThemeRouteCollection::class);
+        $tmpTheme = $collection->getThemeByRoute($this->getViewPath());
+        if ($tmpTheme) {
+            return $tmpTheme[1];
+        }
+
+        if (isset($this->template)) {
+            return $this->template;
+        }
+
+        return FILENAME_THEMES_VIEW;
+    }
+
     /**
-     * Load all the theme-related variables for which theme to use for this request.
+     * Load all the theme-related variables for which theme to use for this request. May update the themeHandle
+     * property on the view based on themeByRoute settings.
      */
     protected function loadViewThemeObject()
     {
         $env = Environment::get();
+        $app = Facade::getFacadeApplication();
+        $tmpTheme = $app->make(ThemeRouteCollection::class)
+            ->getThemeByRoute($this->getViewPath());
+        if (isset($tmpTheme[0])) {
+            $this->themeHandle = $tmpTheme[0];
+        }
+
         if ($this->themeHandle) {
             switch ($this->themeHandle) {
                 case VIEW_CORE_THEME:
@@ -178,9 +211,10 @@ class View extends AbstractView
             $this->setInnerContentFile($env->getPath($this->viewRootDirectoryName.'/'.trim($this->viewPath, '/').'.php', $this->viewPkgHandle));
         }
         if ($this->themeHandle) {
-            $templateFile = FILENAME_THEMES_VIEW;
             if (is_object($this->controller)) {
                 $templateFile = $this->controller->getThemeViewTemplate();
+            } else {
+                $templateFile = $this->getViewTemplateFile();
             }
             $this->setViewTemplate($env->getPath(DIRNAME_THEMES.'/'.$this->themeHandle.'/'.$templateFile, $this->themePkgHandle));
         }
@@ -414,11 +448,13 @@ class View extends AbstractView
         $view = self::getRequestInstance();
 
         $_c = Page::getCurrentPage();
+        $_app = Facade::getFacadeApplication();
         if (is_object($_c)) {
             $_theme = $_c->getCollectionThemeObject();
+        } else if ($_app->isInstalled()) {
+            $_theme = PageTheme::getSiteTheme();
         }
 
-        $_app = Facade::getFacadeApplication();
         $_fs = $_app->make(Filesystem::class);
         $_locator = new FileLocator($_fs, $_app);
         if (isset($_theme) && is_object($_theme)) {

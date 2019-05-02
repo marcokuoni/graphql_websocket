@@ -5,6 +5,7 @@ namespace Concrete\Core\Express\Export\EntryList;
 use Concrete\Core\Entity\Express\Entity;
 use Concrete\Core\Entity\Express\Entry;
 use Concrete\Core\Express\EntryList;
+use Concrete\Core\Localization\Service\Date;
 use League\Csv\Writer;
 
 /**
@@ -16,9 +17,15 @@ class CsvWriter
     /** @var Writer The writer we use to output */
     protected $writer;
 
-    public function __construct(Writer $writer)
+    /**
+     * @var Date
+     */
+    protected $dateFormatter;
+
+    public function __construct(Writer $writer, Date $dateFormatter)
     {
         $this->writer = $writer;
+        $this->dateFormatter = $dateFormatter;
     }
 
     public function insertHeaders(Entity $entity)
@@ -43,13 +50,32 @@ class CsvWriter
      */
     private function projectList(EntryList $list)
     {
+        $headers = array_keys(iterator_to_array($this->getHeaders($list->getEntity())));
         $statement = $list->deliverQueryObject()->execute();
 
         foreach ($statement as $result) {
             if ($entry = $list->getResult($result)) {
-                yield iterator_to_array($this->projectEntry($entry));
+                yield $this->orderedEntry(iterator_to_array($this->projectEntry($entry)), $headers);
             }
         }
+    }
+
+    /**
+     * Return an entry in proper order
+     * @param array $entry
+     * @param array $headerKeys
+     *
+     * @return array
+     */
+    private function orderedEntry(array $entry, array $headerKeys)
+    {
+        $result = [];
+
+        foreach ($headerKeys as $key) {
+            $result[$key] = $entry[$key];
+        }
+
+        return $result;
     }
 
     /**
@@ -59,9 +85,16 @@ class CsvWriter
      */
     private function projectEntry(Entry $entry)
     {
+        $date = $entry->getDateCreated();
+        if ($date) {
+            yield 'ccm_date_created' => $this->dateFormatter->formatCustom(\DateTime::ATOM, $date);
+        } else {
+            yield 'ccm_date_created' => null;
+        }
+
         $attributes = $entry->getAttributes();
         foreach ($attributes as $attribute) {
-            yield $attribute->getPlainTextValue();
+            yield $attribute->getAttributeKey()->getAttributeKeyHandle() => $attribute->getPlainTextValue();
         }
     }
 
@@ -72,9 +105,11 @@ class CsvWriter
      */
     private function getHeaders(Entity $entity)
     {
+        yield 'ccm_date_created' => 'dateCreated';
+
         $attributes = $entity->getAttributes();
         foreach ($attributes as $attribute) {
-            yield $attribute->getAttributeKeyDisplayName();
+            yield $attribute->getAttributeKeyHandle() => $attribute->getAttributeKeyDisplayName();
         }
     }
 

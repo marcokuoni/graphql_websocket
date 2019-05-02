@@ -1,21 +1,4 @@
 <?php
-/*
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT
- * OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
- * SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
- * LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
- * DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
- * THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
- * (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
- * OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- *
- * This software consists of voluntary contributions made by many individuals
- * and is licensed under the LGPL. For more information, see
- * <http://www.doctrine-project.org>.
- */
 
 namespace Doctrine\DBAL\Migrations\Finder;
 
@@ -34,7 +17,7 @@ abstract class AbstractFinder implements MigrationFinderInterface
     protected function getRealPath($directory)
     {
         $dir = realpath($directory);
-        if (false === $dir || !is_dir($dir)) {
+        if (false === $dir || ! is_dir($dir)) {
             throw new \InvalidArgumentException(sprintf(
                 'Cannot load migrations from "%s" because it is not a valid directory',
                 $directory
@@ -46,8 +29,8 @@ abstract class AbstractFinder implements MigrationFinderInterface
 
     /**
      * Load the migrations and return an array of thoses loaded migrations
-     * @param $files array of migration filename found
-     * @param $namespace namespace of thoses migrations
+     * @param array $files array of migration filename found
+     * @param string $namespace namespace of thoses migrations
      * @return array constructed with the migration name as key and the value is the fully qualified name of the migration
      */
     protected function loadMigrations($files, $namespace)
@@ -59,10 +42,10 @@ abstract class AbstractFinder implements MigrationFinderInterface
         foreach ($files as $file) {
             static::requireOnce($file);
             $className = basename($file, '.php');
-            $version = (string) substr($className, 7);
+            $version   = (string) substr($className, 7);
             if ($version === '0') {
                 throw new \InvalidArgumentException(sprintf(
-                    'Cannot load a migrations with the name "%s" because it is a reserved number by doctrine migraitons' . PHP_EOL .
+                    'Cannot load a migrations with the name "%s" because it is a reserved number by doctrine migrations' . PHP_EOL .
                     'It\'s used to revert all migrations including the first one.',
                     $version
                 ));
@@ -78,7 +61,8 @@ abstract class AbstractFinder implements MigrationFinderInterface
      *
      * @return callable
      */
-    protected function getFileSortCallback(){
+    protected function getFileSortCallback()
+    {
         return function ($a, $b) {
             return (basename($a) < basename($b)) ? -1 : 1;
         };

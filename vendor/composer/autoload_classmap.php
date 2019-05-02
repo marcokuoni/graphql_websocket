@@ -6,6 +6,8 @@ $vendorDir = dirname(dirname(__FILE__));
 $baseDir = dirname($vendorDir);
 
 return array(
+    'ArithmeticError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/ArithmeticError.php',
+    'AssertionError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/AssertionError.php',
     'CssAtCharsetParserPlugin' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
     'CssAtCharsetToken' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
     'CssAtFontFaceDeclarationToken' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
@@ -64,10 +66,15 @@ return array(
     'CssVariablesMinifierFilter' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
     'CssVariablesMinifierPlugin' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
     'CssWhitesmithsFormatter' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
+    'DivisionByZeroError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/DivisionByZeroError.php',
+    'Error' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/Error.php',
     'Mobile_Detect' => $vendorDir . '/mobiledetect/mobiledetectlib/Mobile_Detect.php',
-    'Normalizer' => $vendorDir . '/voku/portable-utf8/src/Normalizer.php',
+    'Normalizer' => $vendorDir . '/patchwork/utf8/src/Normalizer.php',
+    'ParseError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/ParseError.php',
     'Securimage' => $vendorDir . '/dapphp/securimage/securimage.php',
     'Securimage_Color' => $vendorDir . '/dapphp/securimage/securimage.php',
+    'SessionUpdateTimestampHandlerInterface' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/SessionUpdateTimestampHandlerInterface.php',
+    'TypeError' => $vendorDir . '/symfony/polyfill-php70/Resources/stubs/TypeError.php',
     'aCssAtBlockEndToken' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
     'aCssAtBlockStartToken' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
     'aCssDeclarationToken' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
@@ -78,5 +85,5 @@ return array(
     'aCssRulesetEndToken' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
     'aCssRulesetStartToken' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
     'aCssToken' => $vendorDir . '/natxet/CssMin/src/CssMin.php',
-    'lessc' => $vendorDir . '/concrete5/less.php/lessc.inc.php',
+    'lessc' => $vendorDir . '/wikimedia/less.php/lessc.inc.php',
 );

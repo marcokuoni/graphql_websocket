@@ -1,9 +1,13 @@
-!function(global, $, _) {
-	'use strict';
+/* jshint unused:vars, undef:true, browser:true, jquery:true */
+/* global _, CCM_DISPATCHER_FILENAME, ConcreteMenu, ConcreteMenuManager */
+
+;(function(global, $) {
+    'use strict';
 
 	function ConcreteFileMenu($element, options) {
-		var my = this, 
-			options = options || {};
+		var my = this;
+
+		options = options || {};
 
 		options = $.extend({
 			'container': false,
@@ -38,7 +42,7 @@
 		});
 		$menu.find('a[data-file-manager-action=download]').on('click', function(e) {
 			e.preventDefault();
-			window.frames['ccm-file-manager-download-target'].location= CCM_TOOLS_PATH + '/files/download?fID=' + fID;
+			window.frames['ccm-file-manager-download-target'].location= CCM_DISPATCHER_FILENAME + '/ccm/system/file/download?fID=' + fID;
 		});
 		$menu.find('a[data-file-manager-action=duplicate]').on('click', function() {
 			$.concreteAjax({
@@ -52,15 +56,15 @@
 			});
 			return false;
 		});
-	}
+	};
 
 	// jQuery Plugin
 	$.fn.concreteFileMenu = function(options) {
 		return $.each($(this), function(i, obj) {
 			new ConcreteFileMenu($(this), options);
 		});
-	}
+	};
 
 	global.ConcreteFileMenu = ConcreteFileMenu;
 
-}(this, $, _);
+})(this, jQuery);

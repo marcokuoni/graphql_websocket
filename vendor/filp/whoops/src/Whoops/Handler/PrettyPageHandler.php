@@ -95,6 +95,8 @@ class PrettyPageHandler extends Handler
         "macvim"   => "mvim://open/?url=file://%file&line=%line",
         "phpstorm" => "phpstorm://open?file=%file&line=%line",
         "idea"     => "idea://open?file=%file&line=%line",
+        "vscode"   => "vscode://file/%file:%line",
+        "atom"     => "atom://core/open/file?filename=%file&line=%line",
     ];
 
     /**
@@ -150,7 +152,7 @@ class PrettyPageHandler extends Handler
         if (!$this->handleUnconditionally()) {
             // Check conditions for outputting HTML:
             // @todo: Make this more robust
-            if (php_sapi_name() === 'cli') {
+            if (PHP_SAPI === 'cli') {
                 // Help users who have been relying on an internal test value
                 // fix their code to the proper method
                 if (isset($_ENV['whoops-test'])) {
@@ -167,6 +169,7 @@ class PrettyPageHandler extends Handler
         $templateFile = $this->getResource("views/layout.html.php");
         $cssFile      = $this->getResource("css/whoops.base.css");
         $zeptoFile    = $this->getResource("js/zepto.min.js");
+        $prettifyFile = $this->getResource("js/prettify.min.js");
         $clipboard    = $this->getResource("js/clipboard.min.js");
         $jsFile       = $this->getResource("js/whoops.base.js");
 
@@ -175,27 +178,8 @@ class PrettyPageHandler extends Handler
         }
 
         $inspector = $this->getInspector();
-        $frames    = $inspector->getFrames();
-
-        $code = $inspector->getException()->getCode();
-
-        if ($inspector->getException() instanceof \ErrorException) {
-            // ErrorExceptions wrap the php-error types within the "severity" property
-            $code = Misc::translateErrorCode($inspector->getException()->getSeverity());
-        }
-
-        // Detect frames that belong to the application.
-        if ($this->applicationPaths) {
-            /* @var \Whoops\Exception\Frame $frame */
-            foreach ($frames as $frame) {
-                foreach ($this->applicationPaths as $path) {
-                    if (substr($frame->getFile(), 0, strlen($path)) === $path) {
-                        $frame->setApplication(true);
-                        break;
-                    }
-                }
-            }
-        }
+        $frames = $this->getExceptionFrames();
+        $code = $this->getExceptionCode();
 
         // List of variables that will be passed to the layout template.
         $vars = [
@@ -204,6 +188,7 @@ class PrettyPageHandler extends Handler
             // @todo: Asset compiler
             "stylesheet" => file_get_contents($cssFile),
             "zepto"      => file_get_contents($zeptoFile),
+            "prettify"   => file_get_contents($prettifyFile),
             "clipboard"  => file_get_contents($clipboard),
             "javascript" => file_get_contents($jsFile),
 
@@ -220,16 +205,18 @@ class PrettyPageHandler extends Handler
             "frame_code"                 => $this->getResource("views/frame_code.html.php"),
             "env_details"                => $this->getResource("views/env_details.html.php"),
 
-            "title"          => $this->getPageTitle(),
-            "name"           => explode("\\", $inspector->getExceptionName()),
-            "message"        => $inspector->getExceptionMessage(),
-            "docref_url"     => $inspector->getExceptionDocrefUrl(),
-            "code"           => $code,
-            "plain_exception" => Formatter::formatExceptionPlain($inspector),
-            "frames"         => $frames,
-            "has_frames"     => !!count($frames),
-            "handler"        => $this,
-            "handlers"       => $this->getRun()->getHandlers(),
+            "title"            => $this->getPageTitle(),
+            "name"             => explode("\\", $inspector->getExceptionName()),
+            "message"          => $inspector->getExceptionMessage(),
+            "previousMessages" => $inspector->getPreviousExceptionMessages(),
+            "docref_url"       => $inspector->getExceptionDocrefUrl(),
+            "code"             => $code,
+            "previousCodes"    => $inspector->getPreviousExceptionCodes(),
+            "plain_exception"  => Formatter::formatExceptionPlain($inspector),
+            "frames"           => $frames,
+            "has_frames"       => !!count($frames),
+            "handler"          => $this,
+            "handlers"         => $this->getRun()->getHandlers(),
 
             "active_frames_tab" => count($frames) && $frames->offsetGet(0)->isApplication() ?  'application' : 'all',
             "has_frames_tabs"   => $this->getApplicationPaths(),
@@ -265,6 +252,47 @@ class PrettyPageHandler extends Handler
         $this->templateHelper->render($templateFile);
 
         return Handler::QUIT;
+    }
+
+    /**
+     * Get the stack trace frames of the exception that is currently being handled.
+     *
+     * @return \Whoops\Exception\FrameCollection;
+     */
+    protected function getExceptionFrames()
+    {
+        $frames = $this->getInspector()->getFrames();
+
+        if ($this->getApplicationPaths()) {
+            foreach ($frames as $frame) {
+                foreach ($this->getApplicationPaths() as $path) {
+                    if (strpos($frame->getFile(), $path) === 0) {
+                        $frame->setApplication(true);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return $frames;
+    }
+
+    /**
+     * Get the code of the exception that is currently being handled.
+     *
+     * @return string
+     */
+    protected function getExceptionCode()
+    {
+        $exception = $this->getException();
+
+        $code = $exception->getCode();
+        if ($exception instanceof \ErrorException) {
+            // ErrorExceptions wrap the php-error types within the 'severity' property
+            $code = Misc::translateErrorCode($exception->getSeverity());
+        }
+
+        return (string) $code;
     }
 
     /**
@@ -468,7 +496,7 @@ class PrettyPageHandler extends Handler
         }
 
         if (is_string($this->editor) && isset($this->editors[$this->editor]) && !is_callable($this->editors[$this->editor])) {
-           return [
+            return [
                 'ajax' => false,
                 'url' => $this->editors[$this->editor],
             ];
@@ -479,6 +507,10 @@ class PrettyPageHandler extends Handler
                 $callback = call_user_func($this->editor, $filePath, $line);
             } else {
                 $callback = call_user_func($this->editors[$this->editor], $filePath, $line);
+            }
+
+            if (empty($callback)) {
+                return [];
             }
 
             if (is_string($callback)) {
@@ -651,7 +683,8 @@ class PrettyPageHandler extends Handler
      * @param $superGlobalName string the name of the superglobal array, e.g. '_GET'
      * @param $key string the key within the superglobal
      */
-    public function blacklist($superGlobalName, $key) {
+    public function blacklist($superGlobalName, $key)
+    {
         $this->blacklist[$superGlobalName][] = $key;
     }
 
@@ -665,11 +698,12 @@ class PrettyPageHandler extends Handler
      * @param $superGlobalName string the name of the superglobal array, e.g. '_GET'
      * @return array $values without sensitive data
      */
-    private function masked(array $superGlobal, $superGlobalName) {
+    private function masked(array $superGlobal, $superGlobalName)
+    {
         $blacklisted = $this->blacklist[$superGlobalName];
 
         $values = $superGlobal;
-        foreach($blacklisted as $key) {
+        foreach ($blacklisted as $key) {
             if (isset($superGlobal[$key])) {
                 $values[$key] = str_repeat('*', strlen($superGlobal[$key]));
             }

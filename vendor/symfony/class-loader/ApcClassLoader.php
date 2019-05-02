@@ -11,7 +11,7 @@
 
 namespace Symfony\Component\ClassLoader;
 
-@trigger_error('The '.__NAMESPACE__.'\ApcClassLoader class is deprecated since version 3.3 and will be removed in 4.0. Use `composer install --apcu-autoloader` instead.', E_USER_DEPRECATED);
+@trigger_error('The '.__NAMESPACE__.'\ApcClassLoader class is deprecated since Symfony 3.3 and will be removed in 4.0. Use `composer install --apcu-autoloader` instead.', E_USER_DEPRECATED);
 
 /**
  * ApcClassLoader implements a wrapping autoloader cached in APC for PHP 5.3.
@@ -61,8 +61,6 @@ class ApcClassLoader
     protected $decorated;
 
     /**
-     * Constructor.
-     *
      * @param string $prefix    The APC namespace prefix to use
      * @param object $decorated A class loader object that implements the findFile() method
      *
@@ -71,7 +69,7 @@ class ApcClassLoader
      */
     public function __construct($prefix, $decorated)
     {
-        if (!function_exists('apcu_fetch')) {
+        if (!\function_exists('apcu_fetch')) {
             throw new \RuntimeException('Unable to use ApcClassLoader as APC is not installed.');
         }
 
@@ -90,7 +88,7 @@ class ApcClassLoader
      */
     public function register($prepend = false)
     {
-        spl_autoload_register(array($this, 'loadClass'), true, $prepend);
+        spl_autoload_register([$this, 'loadClass'], true, $prepend);
     }
 
     /**
@@ -98,7 +96,7 @@ class ApcClassLoader
      */
     public function unregister()
     {
-        spl_autoload_unregister(array($this, 'loadClass'));
+        spl_autoload_unregister([$this, 'loadClass']);
     }
 
     /**
@@ -140,6 +138,6 @@ class ApcClassLoader
      */
     public function __call($method, $args)
     {
-        return call_user_func_array(array($this->decorated, $method), $args);
+        return \call_user_func_array([$this->decorated, $method], $args);
     }
 }

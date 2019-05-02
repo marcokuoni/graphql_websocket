@@ -90,7 +90,10 @@ $(function() {
         var my = this,
             $tabAdd = $('#ccm-tab-content-form-add'),
             $tabEdit = $('#ccm-tab-content-form-edit'),
+            $tabResults = $('#ccm-tab-content-form-results'),
             $tabOptions = $('#ccm-tab-content-form-options'),
+            $storeFormSubmission = $tabResults.find('input[name=storeFormSubmission]'),
+            $formResultsFolderSection = $tabResults.find('div[data-section=form-results-folder]'),
             controlTemplate = _.template($('script[data-template=express-form-form-control]').html()),
             questionTemplate = _.template($('script[data-template=express-form-form-question]').html());
 
@@ -103,6 +106,18 @@ $(function() {
                 $emailReplyToView.hide();
             }
         }).trigger('change');
+
+        $storeFormSubmission.on('change', function() {
+            var $submissionAlert = $tabResults.find('div.alert');
+            if (!$(this).is(':checked')) {
+                $submissionAlert.show();
+                $formResultsFolderSection.hide();
+            } else {
+                $submissionAlert.hide();
+                $formResultsFolderSection.show();
+            }
+        }).trigger('change');
+
 
         $tabAdd.find('div[data-view=add-question-inner]').html(questionTemplate({
             'question': '',
@@ -128,6 +143,7 @@ $(function() {
                 data: data,
                 success: function(r) {
                     $types.find('option').eq(0).prop('selected', true);
+                    $types.find('select').trigger('change');
                     $types.closest('.ui-dialog-content').scrollTop(0);
                     $tabAdd.find('input[name=question]').val('');
                     $tabAdd.find('input[name=required][value=0]').prop('checked', true);
@@ -211,10 +227,10 @@ $(function() {
                     $fields.hide();
 
                     _.each(r.assets.css, function(css) {
-                        ccm_addHeaderItem(css, 'CSS');
+                        ConcreteAssetLoader.loadCSS(css);
                     });
                     _.each(r.assets.javascript, function(javascript) {
-                        ccm_addHeaderItem(javascript, 'JAVASCRIPT');
+                        ConcreteAssetLoader.loadJavaScript(javascript);
                     });
 
                     $editQuestionInner.html(questionTemplate({
@@ -263,10 +279,10 @@ $(function() {
                     loader: false,
                     success: function(r) {
                         _.each(r.assets.css, function(css) {
-                            ccm_addHeaderItem(css, 'CSS');
+                            ConcreteAssetLoader.loadCSS(css);
                         });
                         _.each(r.assets.javascript, function(javascript) {
-                            ccm_addHeaderItem(javascript, 'JAVASCRIPT');
+                            ConcreteAssetLoader.loadJavaScript(javascript);
                         });
                         if (r.showControlName) {
                             $controlName.show();

@@ -128,6 +128,7 @@ class Cif extends \C5TL\Parser
             case '/concrete5-cif/gatheringitemtemplates':
             case '/concrete5-cif/gatheringitemtemplates/gatheringitemtemplate/feature':
             case '/concrete5-cif/gatheringsources':
+            case '/concrete5-cif/geolocators':
             case '/concrete5-cif/imageeditor_components':
             case '/concrete5-cif/imageeditor_controlsets':
             case '/concrete5-cif/imageeditor_filters':
@@ -178,8 +179,6 @@ class Cif extends \C5TL\Parser
             case '/concrete5-cif/permissioncategories':
             case '/concrete5-cif/permissioncategories/category':
             case '/concrete5-cif/permissionkeys':
-            case '/concrete5-cif/permissionkeys/permissionkey/access':
-            case '/concrete5-cif/permissionkeys/permissionkey/access/group':
             case '/concrete5-cif/singlepages':
             case '/concrete5-cif/singlepages/page/area/blocks':
             case '/concrete5-cif/singlepages/page/attributes':
@@ -219,6 +218,7 @@ class Cif extends \C5TL\Parser
             case '/concrete5-cif/features':
             case '/concrete5-cif/flag_types':
             case '/concrete5-cif/gatheringitemtemplatetypes':
+            case '/concrete5-cif/geolocators/geolocator/option':
             case '/concrete5-cif/pages/page/area/block/arealayout/columns/column/block/data/record':
             case '/concrete5-cif/pages/page/area/blocks':
             case '/concrete5-cif/pages/page/area/style':
@@ -226,6 +226,7 @@ class Cif extends \C5TL\Parser
             case '/concrete5-cif/pagetypes/pagetype/composer/output/pagetemplate/page/area/blocks/block':
             case '/concrete5-cif/pagetypes/pagetype/composer/output/pagetemplate/page/area/style':
             case '/concrete5-cif/pagetypes/pagetype/page/area/block/data/record':
+            case '/concrete5-cif/permissionkeys/permissionkey/access':
             case '/concrete5-cif/singlepages/page/area/blocks/block':
             case '/concrete5-cif/sociallinks':
             case '/concrete5-cif/stacks/stack/area/block/data/record':
@@ -378,6 +379,10 @@ class Cif extends \C5TL\Parser
                 break;
             case '/concrete5-cif/pagetypes/pagetype/composer/formlayout/set/control':
                 static::readXmlNodeAttribute($translations, $filenameRel, $node, 'custom-label', 'PageTypeComposerFormLayoutSetControlCustomLabel');
+                break;
+            case '/concrete5-cif/geolocators/geolocator':
+                static::readXmlNodeAttribute($translations, $filenameRel, $node, 'name', 'GeolocatorName');
+                static::readXmlNodeAttribute($translations, $filenameRel, $node, 'description', 'GeolocatorDescription');
                 break;
             default:
                 if (strpos($filenameRel, 'packages/') === 0) {

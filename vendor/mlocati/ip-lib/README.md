@@ -1,5 +1,5 @@
-[![Build Status](https://api.travis-ci.org/mlocati/ip-lib.svg?branch=master)](https://travis-ci.org/mlocati/ip-lib)
-[![HHVM Status](http://hhvm.h4cc.de/badge/mlocati/ip-lib.svg?style=flat)](http://hhvm.h4cc.de/package/mlocati/ip-lib)
+[![TravisCI Build Status](https://api.travis-ci.org/mlocati/ip-lib.svg?branch=master)](https://travis-ci.org/mlocati/ip-lib)
+[![AppVeyor Build Status](https://ci.appveyor.com/api/projects/status/github/mlocati/ip-lib?branch=master&svg=true)](https://ci.appveyor.com/project/punic/punic)
 [![StyleCI Status](https://styleci.io/repos/54139375/shield)](https://styleci.io/repos/54139375)
 [![Coverage Status](https://coveralls.io/repos/github/mlocati/ip-lib/badge.svg?branch=master)](https://coveralls.io/github/mlocati/ip-lib?branch=master)
 [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/mlocati/ip-lib/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/mlocati/ip-lib/?branch=master)
@@ -29,7 +29,7 @@ require_once 'path/to/iplib/ip-lib.php';
 
 ## Installation with Composer
 
-Simply run `composer install mlocati/ip-lib`, or add these lines to your `composer.json` file:
+Simply run `composer require mlocati/ip-lib`, or add these lines to your `composer.json` file:
 
 ```json
 "require": {
@@ -60,6 +60,17 @@ To parse an address in any format (IPv4 or IPv6):
 ```php
 $address = \IPLib\Factory::addressFromString('::1');
 $address = \IPLib\Factory::addressFromString('127.0.0.1');
+```
+
+
+### Get the next/previous addresses
+
+```php
+$address = \IPLib\Factory::addressFromString('::1');
+echo (string) $address->getPreviousAddress();
+// prints ::
+echo (string) $address->getNextAddress();
+// prints ::2
 ```
 
 
@@ -101,6 +112,17 @@ $range = \IPLib\Factory::rangeFromString('::');
 $range = \IPLib\Factory::rangeFromBoundaries('192.168.0.1', '192.168.255.255');
 echo (string) $range;
 // prints 192.168.0.0/16
+```
+
+
+### Retrive the boundaries of a range
+
+```php
+$range = \IPLib\Factory::rangeFromString('127.0.0.*');
+echo (string) $range->getStartAddress();
+// prints 127.0.0.0
+echo (string) $range->getEndAddress();
+// prints 127.0.0.255
 ```
 
 
@@ -155,6 +177,17 @@ $contained = $range->contains($address);
 Please remark that if the address is IPv4 and the range is IPv6 (or vice-versa), the result will always be `false`.
 
 
+### Check if a range contains another range
+
+All the range types offer a `containsRange` method: you can call them to check if an address range fully contains another range:
+
+```php
+$range1 = \IPLib\Factory::rangeFromString('0:0::1/64');
+$range2 = \IPLib\Factory::rangeFromString('0:0::1/65');
+$contained = $range1->containsRange($range2);
+```
+
+
 ### Getting the type of an IP address
 
 If you want to know if an address is within a private network, or if it's a public IP, or whatever you want, you can use the `getRangeType` method:
@@ -168,12 +201,35 @@ $typeName = \IPLib\Range\Type::getName();
 ```
 
 The most notable values of the range type ID are:
--  `\IPLib\Range\Type::T_UNSPECIFIED` if the address is all zeros (`0.0.0.0` or `::`)
--  `\IPLib\Range\Type::T_LOOPBACK` if the address is the localhost (usually `127.0.0.1` or `::1`)
--  `\IPLib\Range\Type::T_PRIVATENETWORK` if the address is in the local network (for instance `192.168.0.1` or `fc00::1`)
--  `\IPLib\Range\Type::T_PUBLIC` if the address is for public usage (for instance `104.25.25.33` or `2001:503:ba3e::2:30`)
+- `\IPLib\Range\Type::T_UNSPECIFIED` if the address is all zeros (`0.0.0.0` or `::`)
+- `\IPLib\Range\Type::T_LOOPBACK` if the address is the localhost (usually `127.0.0.1` or `::1`)
+- `\IPLib\Range\Type::T_PRIVATENETWORK` if the address is in the local network (for instance `192.168.0.1` or `fc00::1`)
+- `\IPLib\Range\Type::T_PUBLIC` if the address is for public usage (for instance `104.25.25.33` or `2001:503:ba3e::2:30`)
 
- 
+
+### Getting the type of an IP address range
+
+If you want to know the type of an address range, you can use the `getRangeType` method:
+
+```php
+$range = \IPLib\Factory::rangeFromString('2000:0::1/64');
+$type = $range->getRangeType();
+// $type is \IPLib\Range\Type::T_PUBLIC
+echo \IPLib\Range\Type::getName($type);
+// 'Public address'
+```
+
+Please remark that if a range spans across multiple range types, you'll get NULL as the range type:
+
+```php
+$range = \IPLib\Factory::rangeFromString('::/127');
+$type = $range->getRangeType();
+// $type is null
+echo \IPLib\Range\Type::getName($type);
+// 'Unknown type'
+```
+
+
 ### Using a database
 
 This package offers a great feature: you can store address ranges in a database table, and check if an address is contained in one of the saved ranges with a simple query.

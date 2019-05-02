@@ -8,6 +8,7 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\DBAL\Schema\Table;
 use Doctrine\DBAL\Schema\Column;
+use Doctrine\DBAL\Schema\SchemaConfig;
 
 /**
  * Parse doctrine-xml data.
@@ -20,12 +21,14 @@ class Parser
      * @param bool $checkXml
      * @param bool $normalizeXml
      * @param callable|null $tableFilter
+     * @param string|null $platformVersion
+     * @param \Doctrine\DBAL\Schema\SchemaConfig|null $schemaConfig
      *
      * @throws Exception
      *
      * @return Schema
      */
-    public static function fromFile($filename, AbstractPlatform $platform, $checkXml = true, $normalizeXml = false, $tableFilter = null)
+    public static function fromFile($filename, AbstractPlatform $platform, $checkXml = true, $normalizeXml = false, $tableFilter = null, $platformVersion = null, SchemaConfig $schemaConfig = null)
     {
         if (!is_file($filename)) {
             throw new Exception('Unable to find the file '.$filename);
@@ -38,20 +41,23 @@ class Parser
             throw new Exception('Error reading from file: '.$filename);
         }
 
-        return static::fromDocument($xml, $platform, $checkXml, $normalizeXml, $tableFilter);
+        return static::fromDocument($xml, $platform, $checkXml, $normalizeXml, $tableFilter, $platformVersion, $schemaConfig);
     }
+
     /**
      * @param string|SimpleXMLElement $xml
      * @param AbstractPlatform $platform
      * @param bool $checkXml
      * @param bool $normalizeXml
      * @param callable|null $tableFilter
+     * @param string|null $platformVersion
+     * @param \Doctrine\DBAL\Schema\SchemaConfig|null $schemaConfig
      *
      * @throws Exception
      *
      * @return Schema
      */
-    public static function fromDocument($xml, AbstractPlatform $platform, $checkXml = true, $normalizeXml = false, $tableFilter = null)
+    public static function fromDocument($xml, AbstractPlatform $platform, $checkXml = true, $normalizeXml = false, $tableFilter = null, $platformVersion = null, SchemaConfig $schemaConfig = null)
     {
         if ($checkXml || $normalizeXml) {
             if (is_a($xml, '\SimpleXMLElement')) {
@@ -81,18 +87,22 @@ class Parser
             }
             libxml_use_internal_errors($preUseInternalErrors);
         }
-        $schema = new Schema();
+        if ($schemaConfig === null) {
+            $schema = new Schema();
+        } else {
+            $schema = new Schema(array(), array(), $schemaConfig);
+        }
         foreach ($xDoc->table as $xTable) {
             if (isset($tableFilter) && ($tableFilter((string) $xTable['name']) === false)) {
                 continue;
             }
-            static::parseTable($schema, $xTable, $platform);
+            static::parseTable($schema, $xTable, $platform, $platformVersion);
         }
 
         return $schema;
     }
 
-    protected static function parseTable(Schema $schema, SimpleXMLElement $xTable, AbstractPlatform $platform)
+    protected static function parseTable(Schema $schema, SimpleXMLElement $xTable, AbstractPlatform $platform, $platformVersion = null)
     {
         $table = $schema->createTable((string) $xTable['name']);
         $comment = (string) $xTable['comment'];
@@ -101,7 +111,7 @@ class Parser
         }
         $primaryKeyFields = array();
         foreach ($xTable->field as $xField) {
-            static::parseField($schema, $table, $xField, $platform);
+            static::parseField($schema, $table, $xField, $platform, $platformVersion);
             if (isset($xField->key) || isset($xField->autoincrement)) {
                 $primaryKeyFields[] = (string) $xField['name'];
             }
@@ -112,13 +122,13 @@ class Parser
         foreach ($xTable->index as $xIndex) {
             static::parseIndex($schema, $table, $xIndex, $platform);
         }
-        static::parseTableOpts($schema, $table, $xTable, $platform);
+        static::parseTableOpts($schema, $table, $xTable, $platform, $platformVersion);
         foreach ($xTable->references as $xReferences) {
             static::parseForeignKey($schema, $table, $xReferences, $platform);
         }
     }
 
-    protected static function parseField(Schema $schema, Table $table, SimpleXMLElement $xField, AbstractPlatform $platform)
+    protected static function parseField(Schema $schema, Table $table, SimpleXMLElement $xField, AbstractPlatform $platform, $platformVersion = null)
     {
         $type = (string) $xField['type'];
         $version = false;
@@ -175,7 +185,7 @@ class Parser
         if ($comment !== '') {
             $field->setComment($comment);
         }
-        static::parseFieldOpts($schema, $field, $xField, $platform);
+        static::parseFieldOpts($schema, $field, $xField, $platform, $platformVersion);
     }
 
     protected static function parseIndex(Schema $schema, Table $table, SimpleXMLElement $xIndex, AbstractPlatform $platform)
@@ -197,16 +207,38 @@ class Parser
         }
     }
 
-    protected static function getOptArray(SimpleXMLElement $xOptParent, AbstractPlatform $platform)
+    protected static function getOptArray(SimpleXMLElement $xOptParent, AbstractPlatform $platform, $platformVersion = null)
     {
         $result = array();
         foreach ($xOptParent->opt as $xOpt) {
             $forThisPlatform = false;
             foreach (explode(',', (string) $xOpt['for']) as $for) {
                 $for = trim($for);
-                if (($for === '*') || (strcasecmp($for, $platform->getName()) === 0)) {
-                    $forThisPlatform = true;
-                    break;
+                if (preg_match('/^(.+?)(<|<=|=|>=|>|!=|<>)(\d+(?:\.\d+)*)$/', $for, $matches) && $matches[1] !== '*') {
+                    $forPlatform = $matches[1];
+                    $forVersionOperator = $matches[2];
+                    $forVersion = $matches[3];
+                } else {
+                    $forPlatform = $for;
+                    $forVersionOperator = null;
+                    $forVersion = null;
+                }
+                if ($forPlatform === '*' || strcasecmp($forPlatform, $platform->getName()) === 0) {
+                    if ($forVersion === null) {
+                        $forThisPlatform = true;
+                        break;
+                    }
+                    if ($platformVersion === null) {
+                        if (in_array($forVersionOperator, array('<', '<=', '!=', '<>'))) {
+                            $forThisPlatform = true;
+                            break;
+                        }
+                    } else {
+                        if (version_compare($platformVersion, $forVersion, $forVersionOperator)) {
+                            $forThisPlatform = true;
+                            break;
+                        }
+                    }
                 }
             }
             if ($forThisPlatform) {
@@ -224,16 +256,16 @@ class Parser
         return $result;
     }
 
-    protected static function parseTableOpts(Schema $schema, Table $table, SimpleXMLElement $xOptParent, AbstractPlatform $platform)
+    protected static function parseTableOpts(Schema $schema, Table $table, SimpleXMLElement $xOptParent, AbstractPlatform $platform, $platformVersion = null)
     {
-        $opts = static::getOptArray($xOptParent, $platform);
+        $opts = static::getOptArray($xOptParent, $platform, $platformVersion);
         foreach ($opts as $name => $value) {
             $table->addOption($name, $value);
         }
     }
-    protected static function parseFieldOpts(Schema $schema, Column $field, SimpleXMLElement $xOptParent, AbstractPlatform $platform)
+    protected static function parseFieldOpts(Schema $schema, Column $field, SimpleXMLElement $xOptParent, AbstractPlatform $platform, $platformVersion = null)
     {
-        $opts = static::getOptArray($xOptParent, $platform);
+        $opts = static::getOptArray($xOptParent, $platform, $platformVersion);
         foreach ($opts as $name => $value) {
             $field->setPlatformOption($name, $value);
         }

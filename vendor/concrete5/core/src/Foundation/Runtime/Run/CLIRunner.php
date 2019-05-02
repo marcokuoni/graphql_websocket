@@ -30,7 +30,7 @@ class CLIRunner implements RunInterface, ApplicationAwareInterface
         $config = $this->app->make('config');
         if (!$config->has('app.server_timezone')) {
             // There is no server timezone set.
-            $config->set('app.server_timezone', @date_default_timezone_get());
+            $config->set('app.server_timezone', @date_default_timezone_get() ?: 'UTC');
         }
         @date_default_timezone_set($config->get('app.server_timezone'));
     }
@@ -56,7 +56,10 @@ class CLIRunner implements RunInterface, ApplicationAwareInterface
             }
         }
 
-        $console->setupDefaultCommands();
+        // Handle legacy backwards compatibility
+        if (method_exists($console, 'setupDefaultCommands')) {
+            $console->setupDefaultCommands();
+        }
 
         \Events::dispatch('on_before_console_run');
 
