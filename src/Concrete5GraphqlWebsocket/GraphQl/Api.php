@@ -1,6 +1,8 @@
 <?php
 namespace Concrete5GraphqlWebsocket\GraphQl;
 
+defined('C5_EXECUTE') or die("Access Denied.");
+
 use Concrete\Core\Controller\Controller;
 use Siler\GraphQL as SilerGraphQL;
 use Siler\Http\Request;
