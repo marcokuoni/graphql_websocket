@@ -5,6 +5,7 @@ defined('C5_EXECUTE') or die("Access Denied.");
 
 use Siler\GraphQL as SilerGraphQL;
 use Concrete\Core\Support\Facade\Facade;
+use Events;
 
 class Websocket
 {
