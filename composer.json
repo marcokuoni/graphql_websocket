@@ -5,7 +5,7 @@
     "license": "MIT",
     "minimum-stability": "stable",
     "require": {
-        "concrete5/core": "^8.5.1"
+        "concrete5/core": "^8.5.0"
     },
     "autoload": {
         "psr-4": {
