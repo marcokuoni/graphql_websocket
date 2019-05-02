@@ -4,6 +4,8 @@ namespace Concrete\Package\Concrete5GraphqlWebsocket;
 use Concrete\Core\Http\ServerInterface;
 use Concrete\Core\Package\Package;
 use Custom\Space\Middleware;
+use Page;
+use SinglePage;
 
 class Controller extends Package
 {
