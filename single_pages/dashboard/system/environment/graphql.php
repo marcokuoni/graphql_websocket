@@ -71,7 +71,13 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                             ?>
                                 <div class="servers" data-pid="<?= $pid ?>">
                                     <h4><?= ($count + 1) . '. ' . t('Server') . (((int)$pid > 0) ? ' ' . t('currently running on pid:') . ' ' . $pid : '') ?></h4>
+                                    <?php
+                                    if((int)$pid > 0) {
+                                        ?>
                                     <a class="btn btn-danger" data-pid="<?= $pid ?>" name="restart-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Restart this websocket server, disconnects all clients.') ?></a>
+                                    <?php
+                                    }
+                                    ?>
                                     <a class="btn btn-danger" data-pid="<?= $pid ?>" data-port="<?= $port ?>" name="remove-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Remove Server') ?></a>
                                     <div class="form-group">
                                         <?= $form->label('WEBSOCKET_PORTS[]', t('Port')) ?>
