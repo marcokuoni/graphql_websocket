@@ -1,6 +1,6 @@
 {
-    "name": "lemonbrain/graphql_websocket",
-    "description": "GraphQL and websocket package that is installable via composer",
+    "name": "lemonbrain/concrete5_graphql_websocket",
+    "description": "GraphQL and websocket package that is installable via composer for concrete 5",
     "type": "concrete5-package",
     "license": "MIT",
     "minimum-stability": "stable",
