@@ -10,5 +10,5 @@ $ composer require lemonbrain/concrete5_graphql_websocket
 Then install the package
 
 ```sh
-$ ./vendor/bin/concrete5 c5:package-install graphql_websocket
+$ ./vendor/bin/concrete5 c5:package-install concrete5_graphql_websocket
 ```

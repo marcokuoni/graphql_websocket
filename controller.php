@@ -1,5 +1,5 @@
 <?php
-namespace Concrete\Package\GraphqlWebsocket;
+namespace Concrete\Package\Concrete5GraphqlWebsocket;
 
 use Concrete\Core\Http\ServerInterface;
 use Concrete\Core\Package\Package;
@@ -10,7 +10,7 @@ class Controller extends Package
 
     protected $appVersionRequired = '8.5.1';
     protected $pkgVersion = '0.1';
-    protected $pkgHandle = 'graphql_websocket';
+    protected $pkgHandle = 'concrete5_graphql_websocket';
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
 
