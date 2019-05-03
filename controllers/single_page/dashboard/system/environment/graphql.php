@@ -175,9 +175,9 @@ class Graphql extends DashboardPageController
     private function start($port)
     {
         if ((bool)$this->app->make('config')->get('concrete.websocket.debug')) {
-            shell_exec("/usr/bin/php " . DIR_BASE . "/index.php --websocket-port " . $port . " >> /var/log/subscription_server.log 2>&1 &");
+            shell_exec("php " . DIR_BASE . "/index.php --websocket-port " . $port . " >> /var/log/subscription_server.log 2>&1 &");
         } else {
-            shell_exec("/usr/bin/php " . DIR_BASE . "/index.php --websocket-port " . $port . " > /dev/null 2>/dev/null &");
+            shell_exec("php " . DIR_BASE . "/index.php --websocket-port " . $port . " > /dev/null 2>/dev/null &");
         }
     }
 

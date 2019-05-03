@@ -26,9 +26,9 @@ class Websocket
                     if (!$app->isRunThroughCommandLineInterface()) {
                         //Starts a new concrete5 instance from console to run the websocket server
                         if ((bool)$config->get('concrete.websocket.debug')) {
-                            shell_exec("/usr/bin/php " . DIR_BASE . "/index.php --websocket-port " . $port . " >> /var/log/subscription_server.log 2>&1 &");
+                            shell_exec("php " . DIR_BASE . "/index.php --websocket-port " . $port . " >> /var/log/subscription_server.log 2>&1 &");
                         } else {
-                            shell_exec("/usr/bin/php " . DIR_BASE . "/index.php --websocket-port " . $port . " > /dev/null 2>/dev/null &");
+                            shell_exec("php " . DIR_BASE . "/index.php --websocket-port " . $port . " > /dev/null 2>/dev/null &");
                         }
                     } else if ($app->isRunThroughCommandLineInterface()) {
                         //child process, we take port from argv. So the posabillity exists to start more then one child process
