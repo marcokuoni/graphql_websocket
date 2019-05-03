@@ -25,6 +25,7 @@ class Controller extends Package
     public function on_start()
     {
         Route::register('/graphql', 'Concrete5GraphqlWebsocket\GraphQl\Api::view');
+        
         // Extend the ServerInterface binding so that when concrete5 creates the http server we can add our middleware
         $this->app->extend(ServerInterface::class, function(ServerInterface $server) {
             // Add our custom middleware
