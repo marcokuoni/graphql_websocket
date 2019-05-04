@@ -26,7 +26,7 @@ class Graphql extends DashboardPageController
         }
         if (!$this->error->has()) {
             if ($this->isPost()) {
-                $restartWebsocket = ' ' . t('Restart the websocket server with the button on the footer');
+                $restartWebsocket = ' ' . t('Restart the websocket server with the button on the footer to refresh also there GraphQL schema');
                 $gdm = $this->post('GRAPHQL_DEV_MODE') === 'yes';
                 $wd = $this->post('WEBSOCKET_DEBUG') === 'yes';
                 $w = $this->post('WEBSOCKET') === 'yes';
@@ -69,7 +69,7 @@ class Graphql extends DashboardPageController
                             }
                         }
                     }
-                    $this->flash('success', t('Settings updated. Refresh the this site to get the new pids if you did not get it already.') . ($w && $gdm ? $restartWebsocket : ''));
+                    $this->flash('success', t('Settings updated.') . ($w && $gdm ? $restartWebsocket : ''));
                     $this->redirect('/dashboard/system/environment/graphql', 'view');
                 }
             }
