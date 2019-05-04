@@ -339,6 +339,14 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             });
         });
 
+        $('input[name^="WEBSOCKET_PORTS"]').keyup(function() {
+            var $startServerButton = $(this).parent().parent().find('a[name="start-server"]');
+            if ($startServerButton.length > 0) {
+                $startServerButton.remove();
+                $(this).parent().append('<p><?= t('Save to start this websocket server') ?></p>');
+            }
+        });
+
         $('input[name=WEBSOCKET]').change(function() {
             var $selected = $('input[name=WEBSOCKET]:checked');
             if ($selected.val() == 'yes') {
