@@ -63,6 +63,8 @@ class Controller extends Package
 
         $this->removeSinglePage('/dashboard/system/environment/graphql');
         SchemaBuilder::deleteSchemaFile();
+
+        parent::uninstall();
     }
     
     private function addSinglePages(){
