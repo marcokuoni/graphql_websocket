@@ -89,7 +89,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                                         if ((int)$pid > 0) {
                                             ?>
                                             <?= $form->text('WEBSOCKET_PORTS[]', (int)$port, array('disabled' => true)) ?>
-                                            <p><?= t('Stop this server to change the port') ?></p>
+                                            <p><?= t('Stop this websocket server to change the port') ?></p>
                                         <?php
                                     } else {
                                         ?>
@@ -170,6 +170,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
         <div class="form-group">
             <label for="WEBSOCKET_PORTS[]" class="control-label"><?= t('Port') ?></label>                                    
             <input type="text" id="WEBSOCKET_PORTS[]" name="WEBSOCKET_PORTS[]" class="form-control ccm-input-text" value="<%= port %>">
+            <p><?= t('Save to start this websocket server') ?></p>
         </div>
     </div>
 </script>
