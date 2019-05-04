@@ -8,6 +8,8 @@ use Page;
 use SinglePage;
 use Route;
 use Concrete5GraphqlWebsocket\GraphQl\Websocket;
+use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
+use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
 
 class Controller extends Package
 {
@@ -46,6 +48,22 @@ class Controller extends Package
         $this->addSinglePages();
         return $result;
     }
+
+    public function uninstall()
+    { 
+        $this->app->make('config')->save('concrete.websocket.debug', false);
+        $servers = (array)($this->app->make('config')->get('concrete.websocket.servers'));
+        $this->app->make('config')->save('concrete.websocket.servers', array());
+        foreach ($servers as $port => $pid) {
+            $pid = (int)$pid;
+            if ($pid > 0) {
+                WebsocketHelpers::stop($pid);
+            }
+        }
+
+        $this->removeSinglePage('/dashboard/system/environment/graphql');
+        SchemaBuilder::deleteSchemaFile();
+    }
     
     private function addSinglePages(){
         $this->addSinglePage('/dashboard/system/environment/graphql', t('GraphQL / Websocket'), t('Change the settings for GraphQL and the Websocket Servers'));
@@ -60,6 +78,13 @@ class Controller extends Package
             $singlePage->update(array('cName'=>$name, 'cDescription'=>$description));
         }else{
             throw new Exception( t('Error: ' . $path . ' page not created'));
+        }
+    }
+
+    private function removeSinglePage($path) {
+        $singlePage = Page::getByPath($path);
+        if( is_object($singlePage) && intval($singlePage->getCollectionID()) ){
+            $singlePage->delete();
         }
     }
 

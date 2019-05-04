@@ -157,6 +157,12 @@ class SchemaBuilder
         return false;
     }
 
+    public static function deleteSchemaFile() {
+        if(file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
+            unlink(self::$basePath . '/' . self::$mergeSchemaFileName);
+        }
+    }
+
     private static function buildSchemaFile()
     {
         $schemaFile = '';

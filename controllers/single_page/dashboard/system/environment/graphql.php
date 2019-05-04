@@ -5,6 +5,7 @@ use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete5GraphqlWebsocket\GraphQL\SchemaBuilder;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Utility\Service\Validation\Numbers;
+use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Exception;
 
 class Graphql extends DashboardPageController
@@ -61,7 +62,7 @@ class Graphql extends DashboardPageController
                         foreach ($servers as $port => $pid) {
                             $pid = (int)$pid;
                             if ($pid > 0) {
-                                $this->stop($pid);
+                                WebsocketHelpers::stop($pid);
                             }
                         }
                     }
@@ -108,12 +109,12 @@ class Graphql extends DashboardPageController
                     $this->app->make('config')->save('concrete.websocket.servers.' . $port, '');
                 }
             }
-            $success &= $this->stop($pid);
+            $success &= WebsocketHelpers::stop($pid);
 
             if (!$success) {
                 throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
             } else if ($currentPort > 0) {
-                $this->start($currentPort);
+                WebsocketHelpers::start($currentPort);
             }
         }
         if ($success) {
@@ -157,7 +158,7 @@ class Graphql extends DashboardPageController
                     $this->app->make('config')->save('concrete.websocket.servers.' . $port, '');
                 }
             }
-            $success &= $this->stop($pid);
+            $success &= WebsocketHelpers::stop($pid);
 
             if (!$success) {
                 throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
@@ -196,7 +197,7 @@ class Graphql extends DashboardPageController
 
         foreach ($ports as $port) {
             $port = (int)$port;
-            $this->start($port);
+            WebsocketHelpers::start($port);
             sleep(1);
         }
 
@@ -224,7 +225,7 @@ class Graphql extends DashboardPageController
         $this->app->make('config')->save('concrete.websocket.servers', array());
         foreach ($servers as $oldPort => $oldPid) {
             if ($pid > 0 && $pid == $oldPid) {
-                $success = $this->stop($pid);
+                $success = WebsocketHelpers::stop($pid);
 
                 if (!$success) {
                     throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
@@ -241,30 +242,5 @@ class Graphql extends DashboardPageController
         }
 
         return $this->app->make(ResponseFactoryInterface::class)->json(true);
-    }
-
-    private function start($port)
-    {
-        if ((bool)$this->app->make('config')->get('concrete.websocket.debug')) {
-            shell_exec("php " . DIR_BASE . "/index.php --websocket-port " . $port . " >> /var/log/subscription_server.log 2>&1 &");
-        } else {
-            shell_exec("php " . DIR_BASE . "/index.php --websocket-port " . $port . " > /dev/null 2>/dev/null &");
-        }
-    }
-
-    private function stop($pid)
-    {
-        $command = 'kill ' . $pid;
-        exec($command);
-        if ($this->status($pid) == false) return true;
-        else return false;
-    }
-
-    private function status($pid)
-    {
-        $command = 'ps -p ' . $pid;
-        exec($command, $op);
-        if (!isset($op[1])) return false;
-        else return true;
     }
 }
