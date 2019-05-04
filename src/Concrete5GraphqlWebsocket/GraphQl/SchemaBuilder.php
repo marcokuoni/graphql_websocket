@@ -121,8 +121,15 @@ class SchemaBuilder
 
     public static function hasSchema()
     {
-        self::refreshSchemaMerge();
-        return (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName) && count(self::$resolver) > 0);
+        if ((bool)Facade::getFacadeApplication()->make('config')->get('concrete.cache.graphql_dev_mode')) {
+            self::refreshSchemaMerge();
+        }
+        if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
+            $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
+            return ($typeDefs != '' && count(self::$resolver) > 0);
+        }
+
+        return false;
     }
 
     public static function get()
@@ -141,23 +148,34 @@ class SchemaBuilder
         }
 
         if (count(self::$resolver) > 0) {
-            $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
+            if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
+                $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
+            } else {
+                if ((bool)Facade::getFacadeApplication()->make('config')->get('concrete.cache.graphql_dev_mode')) {
+                    self::refreshSchemaMerge();
+                }
+            }
 
             if ($typeDefs != '') {
-                self::refreshSchemaMerge();
-                $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
+                if ((bool)Facade::getFacadeApplication()->make('config')->get('concrete.cache.graphql_dev_mode')) {
+                    self::refreshSchemaMerge();
+                }
+                if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
+                    $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
+                }
             }
 
             if ($typeDefs != '') {
                 return SilerGraphQL\schema($typeDefs, self::$resolver);
             }
         }
-        
+
         return false;
     }
 
-    public static function deleteSchemaFile() {
-        if(file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
+    public static function deleteSchemaFile()
+    {
+        if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
             unlink(self::$basePath . '/' . self::$mergeSchemaFileName);
         }
     }
