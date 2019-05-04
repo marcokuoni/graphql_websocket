@@ -1,5 +1,8 @@
 # GraphQL Websocket Concrete5 Composer Package
-You will find all infos on my old [repo](https://github.com/lemonbrain-mk/concrete5_next_gen). I will delete it as fast as possible.
+We build a C5 Version with Siler GraphQL, Apollo V2, React and Material UI. checkout the showdown here [concrete5.lemonbrain.ch](https://concrete5.lemonbrain.ch/index.php/person#/)
+The idea of this repo is to include GraphQL and Websockets in Concrete5.
+
+The documentation is in the [wiki](https://github.com/lemonbrain-mk/graphql_websocket/wiki)
 
 This project is a concrete5 package that is powered entirely by [composer](https://getcomposer.org). It adds the ability to use graphql and websockets on a standard apache hosting with concrete5.
 
