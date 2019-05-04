@@ -16,6 +16,3 @@ $ ./vendor/bin/concrete5 c5:package-install concrete5_graphql_websocket
 ```
 
 ## To dos
-* remove package: stop and remove all websocket servers
-* tag v1.0 in repo and package
-* replace the old repo with a new sample project which uses this package and is setuped with concrete5 composer -> concrete5_graphql_websocket_sample
