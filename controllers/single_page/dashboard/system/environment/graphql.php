@@ -2,9 +2,9 @@
 namespace Concrete\Package\Concrete5GraphqlWebsocket\Controller\SinglePage\Dashboard\System\Environment;
 
 use Concrete\Core\Page\Controller\DashboardPageController;
-use Concrete5GraphqlWebsocket\GraphQL\SchemaBuilder;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Utility\Service\Validation\Numbers;
+use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Exception;
 
@@ -37,6 +37,9 @@ class Graphql extends DashboardPageController
                     $this->redirect('/dashboard/system/environment/graphql', 'view');
                 } else {
                     $this->app->make('config')->save('concrete.cache.graphql_dev_mode', $gdm);
+                    if ($gdm) {
+                        SchemaBuilder::refreshSchemaMerge();
+                    }
 
                     if ($w) {
                         $this->app->make('config')->save('concrete.websocket.debug', $wd);

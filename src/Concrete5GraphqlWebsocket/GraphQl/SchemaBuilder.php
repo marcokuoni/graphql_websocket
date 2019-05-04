@@ -9,7 +9,6 @@ use GraphQL\Type\Schema as SchemaType;
 
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
-use Log;
 use Concrete\Core\Support\Facade\Facade;
 
 
