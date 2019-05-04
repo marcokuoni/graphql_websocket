@@ -40,24 +40,19 @@ class Graphql extends DashboardPageController
                     if ($w) {
                         $this->app->make('config')->save('concrete.websocket.debug', $wd);
                         $servers = (array)($this->app->make('config')->get('concrete.websocket.servers'));
+                        $this->app->make('config')->save('concrete.websocket.servers', array());
                         $websocketsPorts = $this->post('WEBSOCKET_PORTS');
-                        $newPorts = array();
                         foreach ($websocketsPorts as $websocketsPort) {
                             $hasServerAlready = false;
                             foreach ($servers as $port => $pid) {
                                 if ($port == $websocketsPort) {
                                     $hasServerAlready = true;
+                                    $this->app->make('config')->save('concrete.websocket.servers.' . $websocketsPort, $pid);
                                 }
                             }
                             if (!$hasServerAlready) {
                                 $this->app->make('config')->save('concrete.websocket.servers.' . $websocketsPort, '');
-                                $newPorts[] = $websocketsPort;
                             }
-                        }
-                        foreach ($newPorts as $newPort) {
-                            $this->start($newPort);
-                            // give the webservers a chance to start without reload
-                            sleep(1);
                         }
                     } else {
                         $this->app->make('config')->save('concrete.websocket.debug', false);
@@ -130,6 +125,86 @@ class Graphql extends DashboardPageController
         return $this->app->make(ResponseFactoryInterface::class)->json(true);
     }
 
+    public function stopWebsocketServer()
+    {
+        if (!$this->token->validate('ccm-stop_websocket')) {
+            throw new Exception($this->token->getErrorMessage());
+        }
+        $valn = $this->app->make(Numbers::class);
+        $rawPids = $this->request->request->get('pids');
+        if (!is_array($rawPids)) {
+            throw new Exception(sprintf('Invalid parameters: %s', 'pids'));
+        }
+        $pids = [];
+        foreach ($rawPids as $rawPid) {
+            if (!$valn->integer($rawPid, 0)) {
+                throw new Exception(sprintf('Invalid parameters: %s', 'pids'));
+            }
+            $pid = (int)$rawPid;
+            if (in_array($pid, $pids, true)) {
+                throw new Exception(sprintf('Invalid parameters: %s', 'pids'));
+            }
+            $pids[] = $pid;
+        }
+
+        $success = true;
+        foreach ($pids as $pid) {
+            $pid = (int)$pid;
+
+            $servers = (array)($this->app->make('config')->get('concrete.websocket.servers'));
+            foreach ($servers as $port => $oldPid) {
+                if ($pid == $oldPid) {
+                    $this->app->make('config')->save('concrete.websocket.servers.' . $port, '');
+                }
+            }
+            $success &= $this->stop($pid);
+
+            if (!$success) {
+                throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
+            }
+        }
+        if ($success) {
+            $this->flash('success', t('Websocket server stopped.'));
+        } else {
+            $this->flash('error', t('Did not work use "sudo kill pid" on the server console and refresh this site afterwards.'));
+        }
+
+        return $this->app->make(ResponseFactoryInterface::class)->json(true);
+    }
+
+    public function startWebsocketServer()
+    {
+        if (!$this->token->validate('ccm-start_websocket')) {
+            throw new Exception($this->token->getErrorMessage());
+        }
+        $valn = $this->app->make(Numbers::class);
+        $rawPorts = $this->request->request->get('ports');
+        if (!is_array($rawPorts)) {
+            throw new Exception(sprintf('Invalid parameters: %s', 'ports'));
+        }
+        $ports = [];
+        foreach ($rawPorts as $rawPort) {
+            if (!$valn->integer($rawPort, 0)) {
+                throw new Exception(sprintf('Invalid parameters: %s', 'ports'));
+            }
+            $port = (int)$rawPort;
+            if (in_array($port, $ports, true)) {
+                throw new Exception(sprintf('Invalid parameters: %s', 'ports'));
+            }
+            $ports[] = $port;
+        }
+
+        foreach ($ports as $port) {
+            $port = (int)$port;
+            $this->start($port);
+            sleep(1);
+        }
+
+        $this->flash('success', t('Websocket server started and GraphQL Schema reloaded. Refresh this site to get the new pids if you did not get it already.'));
+
+        return $this->app->make(ResponseFactoryInterface::class)->json(true);
+    }
+
     public function removeWebsocketServer()
     {
         if (!$this->token->validate('ccm-remove_websocket')) {
@@ -143,29 +218,25 @@ class Graphql extends DashboardPageController
             throw new Exception(sprintf('Invalid parameters: %s', 'port'));
         }
         $port = (int)$rawPort;
-
-        if (!$valn->integer($rawPid, 0)) {
-            throw new Exception(sprintf('Invalid parameters: %s', 'pid'));
-        }
         $pid = (int)$rawPid;
 
         $servers = (array)($this->app->make('config')->get('concrete.websocket.servers'));
         $this->app->make('config')->save('concrete.websocket.servers', array());
         foreach ($servers as $oldPort => $oldPid) {
-            if ($pid == $oldPid) {
+            if ($pid > 0 && $pid == $oldPid) {
                 $success = $this->stop($pid);
-    
+
                 if (!$success) {
                     throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
-                } 
-            } else {
+                }
+            } else if ($port !== $oldPort) {
                 $this->app->make('config')->save('concrete.websocket.servers.' . $oldPort, $oldPid);
             }
         }
 
-        if ($success) {
+        if (!$pid || $success) {
             $this->flash('success', t('Websocket server removed'));
-        } else {
+        } else if ($pid > 0) {
             $this->flash('error', t('Could not remove websocket server'));
         }
 

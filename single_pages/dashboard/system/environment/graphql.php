@@ -72,16 +72,31 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                                 <div class="servers" data-pid="<?= $pid ?>">
                                     <h4><?= ($count + 1) . '. ' . t('Server') . (((int)$pid > 0) ? ' ' . t('currently running on pid:') . ' ' . $pid : '') ?></h4>
                                     <?php
-                                    if((int)$pid > 0) {
+                                    if ((int)$pid > 0) {
                                         ?>
-                                    <a class="btn btn-danger" data-pid="<?= $pid ?>" name="restart-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Restart this websocket server, disconnects all clients.') ?></a>
+                                        <a class="btn btn-danger" data-pid="<?= $pid ?>" name="stop-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Stop this websocket server, disconnects all clients.') ?></a>
                                     <?php
-                                    }
+                                } else {
                                     ?>
+                                        <a class="btn btn-success" data-port="<?= $port ?>" name="start-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Start this websocket server, disconnects all clients.') ?></a>
+                                    <?php
+                                }
+                                ?>
                                     <a class="btn btn-danger" data-pid="<?= $pid ?>" data-port="<?= $port ?>" name="remove-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Remove Server') ?></a>
                                     <div class="form-group">
                                         <?= $form->label('WEBSOCKET_PORTS[]', t('Port')) ?>
-                                        <?= $form->text('WEBSOCKET_PORTS[]', (int)$port) ?>
+                                        <?php
+                                        if ((int)$pid > 0) {
+                                            ?>
+                                            <?= $form->text('WEBSOCKET_PORTS[]', (int)$port, array('disabled' => true)) ?>
+                                            <p><?= t('Stop this server to change the port') ?></p>
+                                        <?php
+                                    } else {
+                                        ?>
+                                            <?= $form->text('WEBSOCKET_PORTS[]', (int)$port) ?>
+                                        <?php
+                                    }
+                                    ?>
                                     </div>
                                 </div>
                                 <?php
@@ -151,6 +166,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
 <script data-template='add-server-template' type="text/template" charset="utf-8">
     <div class="servers">
         <h4><%= count %><?= '. ' . t('Server') ?></h4>
+        <a class="btn btn-danger" name="remove-new-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Remove Server') ?></a>
         <div class="form-group">
             <label for="WEBSOCKET_PORTS[]" class="control-label"><?= t('Port') ?></label>                                    
             <input type="text" id="WEBSOCKET_PORTS[]" name="WEBSOCKET_PORTS[]" class="form-control ccm-input-text" value="<%= port %>">
@@ -164,7 +180,8 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             _addServerTemplate = _.template($('script[data-template=add-server-template]').html()),
             $serversContainer = $('.servers-container'),
             $restartWebsockets = $('a[name="restart-servers"]'),
-            $restartWebsocket = $('a[name="restart-server"]'),
+            $stopWebsocket = $('a[name="stop-server"]'),
+            $startWebsocket = $('a[name="start-server"]'),
             $addServer = $('a[name="add-server"]'),
             $removeServer = $('a[name="remove-server"]'),
             tokenName = <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>,
@@ -173,7 +190,15 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                                 'url' => (string)$view->action('restartWebsocketServer'),
                                 'token' => $token->generate('ccm-restart_websockets'),
                             ],
-                            'removeWebsockets' => [
+                            'stopWebsocket' => [
+                                'url' => (string)$view->action('stopWebsocketServer'),
+                                'token' => $token->generate('ccm-stop_websocket'),
+                            ],
+                            'startWebsocket' => [
+                                'url' => (string)$view->action('startWebsocketServer'),
+                                'token' => $token->generate('ccm-start_websocket'),
+                            ],
+                            'removeWebsocket' => [
                                 'url' => (string)$view->action('removeWebsocketServer'),
                                 'token' => $token->generate('ccm-remove_websocket'),
                             ],
@@ -199,41 +224,67 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
         }
 
         $restartWebsockets.click(function() {
-            var $servers = $serversContainer.find('.servers'),
-                pids = [];
-            $(document.body).css({
-                'cursor': 'wait'
-            });
+            if (confirm("<?= t('Are you sure, that you want to restart all websocket servers?') ?>")) {
+                var $servers = $serversContainer.find('.servers'),
+                    pids = [];
+                $(document.body).css({
+                    'cursor': 'wait'
+                });
 
-            $servers.each(function() {
-                pids.push($(this).data('pid'));
-            })
+                $servers.each(function() {
+                    pids.push($(this).data('pid'));
+                })
 
-            ajax(
-                'restartWebsockets', {
-                    pids: pids
-                },
-                function() {
-                    //give the webservers a chance to start without reload
-                    setTimeout(function() {
-                            window.location.reload();
-                        },
-                        1000);
-                },
-                function() {}
-            );
+                ajax(
+                    'restartWebsockets', {
+                        pids: pids
+                    },
+                    function() {
+                        //give the webservers a chance to start without reload
+                        setTimeout(function() {
+                                window.location.reload();
+                            },
+                            1000);
+                    },
+                    function() {}
+                );
+            }
         });
 
-        $restartWebsocket.click(function() {
-            var pids = [];
-            pids.push($(this).data('pid'))
+        $stopWebsocket.click(function() {
+            if (confirm("<?= t('Are you sure, that you want to stop this websocket server?') ?>")) {
+                var pids = [];
+                pids.push($(this).data('pid'))
+                $(document.body).css({
+                    'cursor': 'wait'
+                });
+
+                ajax(
+                    'stopWebsocket', {
+                        pids: pids
+                    },
+                    function() {
+                        //give the webservers a chance to start without reload
+                        setTimeout(function() {
+                                window.location.reload();
+                            },
+                            1000);
+                    },
+                    function() {}
+                );
+            }
+        });
+
+        $startWebsocket.click(function() {
+            var ports = [];
+            ports.push($(this).data('port'))
             $(document.body).css({
                 'cursor': 'wait'
             });
 
             ajax(
-                'restartWebsockets', {
-                    pids: pids
+                'startWebsocket', {
+                    ports: ports
                 },
                 function() {
                     //give the webservers a chance to start without reload
@@ -247,12 +298,12 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
         });
 
         $removeServer.click(function() {
-            if (confirm("<?= t('Are you sure, that you want to remove this server?') ?>")) {
+            if (confirm("<?= t('Are you sure, that you want to remove this websocket server?') ?>")) {
                 $(document.body).css({
                     'cursor': 'wait'
                 });
                 ajax(
-                    'removeWebsockets', {
+                    'removeWebsocket', {
                         pid: $(this).data('pid'),
                         port: $(this).data('port')
                     },
@@ -277,6 +328,14 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                     'port': (3000 + (count - 1))
                 })
             );
+
+            var $removeNewServer = $('a[name="remove-new-server"]');
+            $removeNewServer.off('click');
+            $removeNewServer.on('click', function() {
+                if (confirm("<?= t('Are you sure, that you want to remove this websocket server?') ?>")) {
+                    $(this).parent().remove();
+                }
+            });
         });
 
         $('input[name=WEBSOCKET]').change(function() {
