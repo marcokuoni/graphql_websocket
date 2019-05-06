@@ -68,7 +68,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                 <div class="form-group">
                 <div class="form-group">
                     <?= $form->label('MAX_QUERY_DEPTH', t('Max Query Depth')) ?>
-                    <?= $form->text('MAX_QUERY_DEPTH', (INT)$max_query_depth > 0 ? (INT)$max_query_depth : 100) ?>
+                    <?= $form->text('MAX_QUERY_DEPTH', (INT)$max_query_depth > 0 ? (INT)$max_query_depth : 10) ?>
                 </div>
                 </div>
             </div>
@@ -150,8 +150,8 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                                         <?php
                                         if ((int)$pid > 0) {
                                             ?>
-                                            <?= $form->text('WEBSOCKET_PORTS[]', (int)$port, array('disabled' => true)) ?>
-                                            <p><?= t('Stop this websocket server to change the port') ?></p>
+                                            <?= $form->hidden('WEBSOCKET_PORTS[]', (int)$port) ?>
+                                            <p><?= t('Stop this websocket server to change the port %s', (int)$port) ?></p>
                                         <?php
                                     } else {
                                         ?>
