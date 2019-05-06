@@ -47,17 +47,21 @@ class Graphql extends DashboardPageController
                     $this->redirect('/dashboard/system/environment/graphql', 'view');
                 } else {
                     $this->app->make('config')->save('concrete.cache.graphql_dev_mode', $gdm);
+                    $this->app->make('config')->save('concrete.graphql.disabling_introspection', $di);
                     if($qca) {
+                        //this is a auto setting from graphql php, just set it to true that the user has feedback
+                        $this->app->make('config')->save('concrete.graphql.disabling_introspection', true);
                         $this->app->make('config')->save('concrete.graphql.max_query_complexity', (int)$this->post('MAX_QUERY_COMPLEXITY'));
                     } else {
                         $this->app->make('config')->save('concrete.graphql.max_query_complexity', 0);
                     }
                     if($lqd) {
+                        //this is a auto setting from graphql php, just set it to true that the user has feedback
+                        $this->app->make('config')->save('concrete.graphql.disabling_introspection', true);
                         $this->app->make('config')->save('concrete.graphql.max_query_depth', (int)$this->post('MAX_QUERY_DEPTH'));
                     } else {
                         $this->app->make('config')->save('concrete.graphql.max_query_depth', 0);
                     }
-                    $this->app->make('config')->save('concrete.graphql.disabling_introspection', $di);
                     if ($gdm) {
                         SchemaBuilder::refreshSchemaMerge();
                     }

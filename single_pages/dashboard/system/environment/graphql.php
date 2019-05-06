@@ -39,9 +39,18 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             <div class="radio">
                 <label>
                     <?= $form->radio('QUERY_COMPLEXITY_ANALYSIS', 'yes', $query_complexity_analysis) ?>
-                    <span><?= t('On') ?></span>
+                    <span><?= t('On - It also disables introspection') ?></span>
                 </label>
             </div>
+            <?php
+            if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                ?>
+                <div class="help-block">
+                    <?= t('All websocket servers have to be restarted to take effect on them') ?>
+                </div>
+            <?php
+        }
+        ?>
             <div data-fields="QUERY_COMPLEXITY_ANALYSIS" style="padding-left: 30px;">
                 <div class="form-group">
                     <?= $form->label('MAX_QUERY_COMPLEXITY', t('Max Query Complexity')) ?>
@@ -61,15 +70,24 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             <div class="radio">
                 <label>
                     <?= $form->radio('LIMITING_QUERY_DEPTH', 'yes', $limiting_query_depth) ?>
-                    <span><?= t('On') ?></span>
+                    <span><?= t('On - It also disables introspection') ?></span>
                 </label>
             </div>
+            <?php
+            if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                ?>
+                <div class="help-block">
+                    <?= t('All websocket servers have to be restarted to take effect on them') ?>
+                </div>
+            <?php
+        }
+        ?>
             <div data-fields="LIMITING_QUERY_DEPTH" style="padding-left: 30px;">
                 <div class="form-group">
-                <div class="form-group">
-                    <?= $form->label('MAX_QUERY_DEPTH', t('Max Query Depth')) ?>
-                    <?= $form->text('MAX_QUERY_DEPTH', (INT)$max_query_depth > 0 ? (INT)$max_query_depth : 10) ?>
-                </div>
+                    <div class="form-group">
+                        <?= $form->label('MAX_QUERY_DEPTH', t('Max Query Depth')) ?>
+                        <?= $form->text('MAX_QUERY_DEPTH', (INT)$max_query_depth > 0 ? (INT)$max_query_depth : 10) ?>
+                    </div>
                 </div>
             </div>
 
@@ -88,7 +106,15 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                     <span><?= t('On') ?></span>
                 </label>
             </div>
-
+            <?php
+            if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                ?>
+                <div class="help-block">
+                    <?= t('All websocket servers have to be restarted to take effect on them') ?>
+                </div>
+            <?php
+        }
+        ?>
             <div class="radio">
                 <label>
                     <?= $form->radio('DISABLING_INTROSPECTION', 'no', !$disabling_introspection) ?>
