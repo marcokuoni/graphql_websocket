@@ -10,7 +10,7 @@ use GraphQL\Type\Schema as SchemaType;
 use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use Concrete\Core\Support\Facade\Facade;
-
+use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 
 class SchemaBuilder
 {
@@ -134,21 +134,7 @@ class SchemaBuilder
 
     public static function get()
     {
-        $app = \Concrete\Core\Support\Facade\Application::getFacadeApplication();
-        $config = $app->make('config');
-        $servers = (array)$config->get('concrete.websocket.servers');
-        foreach ($servers as $port => $pid) {
-            $port = (int)$port;
-            $pid = (int)$pid;
-
-            if ($pid > 0) {
-                if ($port > 0) {
-                    SilerGraphQL\subscriptions_at('ws://127.0.0.1:' . $port . '/');
-                } else {
-                    SilerGraphQL\subscriptions_at('ws://127.0.0.1:3000/');
-                }
-            }
-        }
+        WebsocketHelpers::setSubscriptionAt();
 
         if (count(self::$resolver) > 0) {
             if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
