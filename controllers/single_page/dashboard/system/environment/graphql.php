@@ -17,6 +17,13 @@ class Graphql extends DashboardPageController
         $this->set('websocket_has_servers', (bool)(count(array_keys($websocket_servers)) > 0));
         $this->set('websocket_debug', (bool)$this->app->make('config')->get('concrete.websocket.debug'));
         $this->set('graphql_dev_mode', (bool)$this->app->make('config')->get('concrete.cache.graphql_dev_mode'));
+        $max_query_complexity = (int)$this->app->make('config')->get('concrete.graphql.max_query_complexity');
+        $this->set('max_query_complexity', $max_query_complexity);
+        $this->set('query_complexity_analysis', (bool)($max_query_complexity > 0));
+        $max_query_depth = (int)$this->app->make('config')->get('concrete.graphql.max_query_depth');
+        $this->set('max_query_depth', $max_query_depth);
+        $this->set('limiting_query_depth', (bool)($max_query_depth > 0));
+        $this->set('disabling_introspection', (bool)$this->app->make('config')->get('concrete.graphql.disabling_introspection'));
     }
 
     public function update_entity_settings()
@@ -30,6 +37,9 @@ class Graphql extends DashboardPageController
                 $gdm = $this->post('GRAPHQL_DEV_MODE') === 'yes';
                 $wd = $this->post('WEBSOCKET_DEBUG') === 'yes';
                 $w = $this->post('WEBSOCKET') === 'yes';
+                $qca = $this->post('QUERY_COMPLEXITY_ANALYSIS') === 'yes';
+                $lqd = $this->post('LIMITING_QUERY_DEPTH') === 'yes';
+                $di = $this->post('DISABLING_INTROSPECTION') === 'yes';
 
                 if ($this->request->request->get('refresh')) {
                     SchemaBuilder::refreshSchemaMerge();
@@ -37,6 +47,17 @@ class Graphql extends DashboardPageController
                     $this->redirect('/dashboard/system/environment/graphql', 'view');
                 } else {
                     $this->app->make('config')->save('concrete.cache.graphql_dev_mode', $gdm);
+                    if($qca) {
+                        $this->app->make('config')->save('concrete.graphql.max_query_complexity', (int)$this->post('MAX_QUERY_COMPLEXITY'));
+                    } else {
+                        $this->app->make('config')->save('concrete.graphql.max_query_complexity', 0);
+                    }
+                    if($lqd) {
+                        $this->app->make('config')->save('concrete.graphql.max_query_depth', (int)$this->post('MAX_QUERY_DEPTH'));
+                    } else {
+                        $this->app->make('config')->save('concrete.graphql.max_query_depth', 0);
+                    }
+                    $this->app->make('config')->save('concrete.graphql.disabling_introspection', $di);
                     if ($gdm) {
                         SchemaBuilder::refreshSchemaMerge();
                     }

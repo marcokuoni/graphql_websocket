@@ -11,6 +11,7 @@ use GraphQL\Type\Definition\ObjectType;
 use GraphQL\Type\Definition\Type;
 use Concrete\Core\Support\Facade\Facade;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
+use Concrete5GraphqlWebsocket\GraphQl\SecurityHelper;
 
 class SchemaBuilder
 {
@@ -135,6 +136,7 @@ class SchemaBuilder
     public static function get()
     {
         WebsocketHelpers::setSubscriptionAt();
+        SecurityHelper::setSecurities();
 
         if (count(self::$resolver) > 0) {
             if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {

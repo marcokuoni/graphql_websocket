@@ -34,6 +34,68 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                 </label>
             </div>
         </div>
+        <div class="form-group">
+            <label class="launch-tooltip" data-placement="right" title="<?= t('This is a PHP port of Query Complexity Analysis in Sangria implementation. Complexity analysis is a separate validation rule which calculates query complexity score before execution. Every field in the query gets a default score 1 (including ObjectType nodes). Total complexity of the query is the sum of all field scores. For example, the complexity of introspection query is 109. If this score exceeds a threshold, a query is not executed and an error is returned instead.') ?>"><?= t('Query Complexity Analysis') ?></label>
+            <div class="radio">
+                <label>
+                    <?= $form->radio('QUERY_COMPLEXITY_ANALYSIS', 'yes', $query_complexity_analysis) ?>
+                    <span><?= t('On') ?></span>
+                </label>
+            </div>
+            <div data-fields="QUERY_COMPLEXITY_ANALYSIS" style="padding-left: 30px;">
+                <div class="form-group">
+                    <?= $form->label('MAX_QUERY_COMPLEXITY', t('Max Query Complexity')) ?>
+                    <?= $form->text('MAX_QUERY_COMPLEXITY', (INT)$max_query_complexity > 0 ? (INT)$max_query_complexity : 100) ?>
+                </div>
+            </div>
+
+            <div class="radio">
+                <label>
+                    <?= $form->radio('QUERY_COMPLEXITY_ANALYSIS', 'no', !$query_complexity_analysis) ?>
+                    <span><?= t('Off') ?></span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="launch-tooltip" data-placement="right" title="<?= t('This is a PHP port of Limiting Query Depth in Sangria implementation. For example, max depth of the introspection query is 7.') ?>"><?= t('Limiting Query Depth') ?></label>
+            <div class="radio">
+                <label>
+                    <?= $form->radio('LIMITING_QUERY_DEPTH', 'yes', $limiting_query_depth) ?>
+                    <span><?= t('On') ?></span>
+                </label>
+            </div>
+            <div data-fields="LIMITING_QUERY_DEPTH" style="padding-left: 30px;">
+                <div class="form-group">
+                <div class="form-group">
+                    <?= $form->label('MAX_QUERY_DEPTH', t('Max Query Depth')) ?>
+                    <?= $form->text('MAX_QUERY_DEPTH', (INT)$max_query_depth > 0 ? (INT)$max_query_depth : 100) ?>
+                </div>
+                </div>
+            </div>
+
+            <div class="radio">
+                <label>
+                    <?= $form->radio('LIMITING_QUERY_DEPTH', 'no', !$limiting_query_depth) ?>
+                    <span><?= t('Off') ?></span>
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="launch-tooltip" data-placement="right" title="<?= t('Introspection is a mechanism for fetching schema structure. It is used by tools like GraphiQL for auto-completion, query validation, etc. Introspection is enabled by default. It means that anybody can get a full description of your schema by sending a special query containing meta fields __type and __schema. If you are not planning to expose your API to the general public, it makes sense to disable this feature.') ?>"><?= t('Disabling Introspection') ?></label>
+            <div class="radio">
+                <label>
+                    <?= $form->radio('DISABLING_INTROSPECTION', 'yes', $disabling_introspection) ?>
+                    <span><?= t('On') ?></span>
+                </label>
+            </div>
+
+            <div class="radio">
+                <label>
+                    <?= $form->radio('DISABLING_INTROSPECTION', 'no', !$disabling_introspection) ?>
+                    <span><?= t('Off') ?></span>
+                </label>
+            </div>
+        </div>
     </fieldset>
 
     <fieldset>
@@ -349,7 +411,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
 
         $('input[name=WEBSOCKET]').change(function() {
             var $selected = $('input[name=WEBSOCKET]:checked');
-            if ($selected.val() == 'yes') {
+            if ($selected.val() === 'yes') {
                 $('div[data-fields=simple]').show();
             } else {
                 $('div[data-fields=simple]').hide();
@@ -357,5 +419,27 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
         });
 
         $('input[name=WEBSOCKET]:checked').trigger('change');
+
+        $('input[name=QUERY_COMPLEXITY_ANALYSIS]').change(function() {
+            var $selected = $('input[name=QUERY_COMPLEXITY_ANALYSIS]:checked');
+            if ($selected.val() === 'yes') {
+                $('div[data-fields=QUERY_COMPLEXITY_ANALYSIS]').show();
+            } else {
+                $('div[data-fields=QUERY_COMPLEXITY_ANALYSIS]').hide();
+            }
+        });
+
+        $('input[name=QUERY_COMPLEXITY_ANALYSIS]:checked').trigger('change');
+
+        $('input[name=LIMITING_QUERY_DEPTH]').change(function() {
+            var $selected = $('input[name=LIMITING_QUERY_DEPTH]:checked');
+            if ($selected.val() === 'yes') {
+                $('div[data-fields=LIMITING_QUERY_DEPTH]').show();
+            } else {
+                $('div[data-fields=LIMITING_QUERY_DEPTH]').hide();
+            }
+        });
+
+        $('input[name=LIMITING_QUERY_DEPTH]:checked').trigger('change');
     });
 </script>
