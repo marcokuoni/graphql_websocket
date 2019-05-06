@@ -19,3 +19,4 @@ $ ./vendor/bin/concrete5 c5:package-install concrete5_graphql_websocket
 ```
 
 ## To dos
+* Implement the Server Securities in the Dashboard https://webonyx.github.io/graphql-php/security/
