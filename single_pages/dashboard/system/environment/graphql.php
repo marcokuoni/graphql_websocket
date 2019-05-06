@@ -42,16 +42,16 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                     <span><?= t('On - It also disables introspection') ?></span>
                 </label>
             </div>
-            <?php
-            if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
-                ?>
-                <div class="help-block">
-                    <?= t('All websocket servers have to be restarted to take effect on them') ?>
-                </div>
-            <?php
-        }
-        ?>
             <div data-fields="QUERY_COMPLEXITY_ANALYSIS" style="padding-left: 30px;">
+                <?php
+                if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                    ?>
+                    <div class="help-block">
+                        <?= t('All websocket servers have to be restarted to take effect on them') ?>
+                    </div>
+                <?php
+            }
+            ?>
                 <div class="form-group">
                     <?= $form->label('MAX_QUERY_COMPLEXITY', t('Max Query Complexity')) ?>
                     <?= $form->text('MAX_QUERY_COMPLEXITY', (INT)$max_query_complexity > 0 ? (INT)$max_query_complexity : 100) ?>
@@ -73,16 +73,16 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                     <span><?= t('On - It also disables introspection') ?></span>
                 </label>
             </div>
-            <?php
-            if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
-                ?>
-                <div class="help-block">
-                    <?= t('All websocket servers have to be restarted to take effect on them') ?>
-                </div>
-            <?php
-        }
-        ?>
             <div data-fields="LIMITING_QUERY_DEPTH" style="padding-left: 30px;">
+                <?php
+                if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                    ?>
+                    <div class="help-block">
+                        <?= t('All websocket servers have to be restarted to take effect on them') ?>
+                    </div>
+                <?php
+            }
+            ?>
                 <div class="form-group">
                     <div class="form-group">
                         <?= $form->label('MAX_QUERY_DEPTH', t('Max Query Depth')) ?>
@@ -106,15 +106,17 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                     <span><?= t('On') ?></span>
                 </label>
             </div>
-            <?php
-            if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
-                ?>
-                <div class="help-block">
-                    <?= t('All websocket servers have to be restarted to take effect on them') ?>
-                </div>
-            <?php
-        }
-        ?>
+            <div data-fields="DISABLING_INTROSPECTION" style="padding-left: 30px;">
+                <?php
+                if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                    ?>
+                    <div class="help-block">
+                        <?= t('All websocket servers have to be restarted to take effect on them') ?>
+                    </div>
+                <?php
+            }
+            ?>
+            </div>
             <div class="radio">
                 <label>
                     <?= $form->radio('DISABLING_INTROSPECTION', 'no', !$disabling_introspection) ?>
@@ -467,5 +469,16 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
         });
 
         $('input[name=LIMITING_QUERY_DEPTH]:checked').trigger('change');
+
+        $('input[name=DISABLING_INTROSPECTION]').change(function() {
+            var $selected = $('input[name=DISABLING_INTROSPECTION]:checked');
+            if ($selected.val() === 'yes') {
+                $('div[data-fields=DISABLING_INTROSPECTION]').show();
+            } else {
+                $('div[data-fields=DISABLING_INTROSPECTION]').hide();
+            }
+        });
+
+        $('input[name=DISABLING_INTROSPECTION]:checked').trigger('change');
     });
 </script>
