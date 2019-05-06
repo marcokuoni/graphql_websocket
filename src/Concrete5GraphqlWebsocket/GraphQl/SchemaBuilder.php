@@ -139,11 +139,14 @@ class SchemaBuilder
         $servers = (array)$config->get('concrete.websocket.servers');
         foreach ($servers as $port => $pid) {
             $port = (int)$port;
+            $pid = (int)$pid;
 
-            if ($port > 0) {
-                SilerGraphQL\subscriptions_at('ws://127.0.0.1:' . $port . '/');
-            } else {
-                SilerGraphQL\subscriptions_at('ws://127.0.0.1:3000/');
+            if ($pid > 0) {
+                if ($port > 0) {
+                    SilerGraphQL\subscriptions_at('ws://127.0.0.1:' . $port . '/');
+                } else {
+                    SilerGraphQL\subscriptions_at('ws://127.0.0.1:3000/');
+                }
             }
         }
 
