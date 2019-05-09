@@ -14,11 +14,10 @@ class WebsocketHelpers
         $phpVersion = substr(PHP_VERSION,0,3);
 
         if ((bool)$app->make('config')->get('concrete.websocket.debug')) {
-            $cmd = escapeshellcmd("/usr/bin/php".$phpVersion." ".DIR_BASE."/index.php --websocket-port ".$port." >> /var/log/subscription_server.log 2>&1 &");
+            $cmd = escapeshellarg('/usr/bin/php'.$phpVersion).' '.escapeshellarg(DIR_BASE.'/index.php').' --websocket-port '.escapeshellarg($port).' >> /var/log/subscription_server.log 2>&1 &';
         } else {
-            $cmd = escapeshellcmd("/usr/bin/php".$phpVersion." ".DIR_BASE."/index.php --websocket-port ".$port." > /dev/null 2>/dev/null &");
+            $cmd = escapeshellarg('/usr/bin/php'.$phpVersion).' '.escapeshellarg(DIR_BASE.'/index.php').' --websocket-port '.escapeshellarg($port).' > /dev/null 2>/dev/null &';
         }
-        
         shell_exec($cmd);
     }
 
