@@ -9,28 +9,30 @@ use GraphQL\Validator\Rules\QueryComplexity;
 use GraphQL\Validator\Rules\QueryDepth;
 use GraphQL\Validator\Rules\DisableIntrospection;
 use GraphQL\Validator\DocumentValidator;
+use Concrete5GraphqlWebsocket\PackageHelpers;
 
 class SecurityHelper
 {
     public static function setSecurities()
     { 
         $app = Facade::getFacadeApplication();
+        $config = PackageHelpers::getFileConfig($app);
 
-        $maxQueryComplexity = (int)$app->make('config')->get('concrete.graphql.max_query_complexity');
+        $maxQueryComplexity = (int)$config->get('graphql.max_query_complexity');
         if($maxQueryComplexity > 0) {
             self::setQueryComplexityAnalysis($maxQueryComplexity);
         } else {
             self::removeQueryComplexityAnalysis($maxQueryComplexity);
         }
 
-        $maxDepth = (int)$app->make('config')->get('concrete.graphql.max_query_depth');
+        $maxDepth = (int)$config->get('graphql.max_query_depth');
         if($maxDepth > 0) {
             self::setLimitingQueryDepth($maxDepth);
         } else {
             self::removeLimitingQueryDepth();
         }
 
-        if ((bool)$app->make('config')->get('concrete.graphql.disabling_introspection')) {
+        if ((bool)$config->get('graphql.disabling_introspection')) {
             self::setDisablingIntrospection();
         } else {
             self::removeDisablingIntrospection();

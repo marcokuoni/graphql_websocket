@@ -12,6 +12,7 @@ use GraphQL\Type\Definition\Type;
 use Concrete\Core\Support\Facade\Facade;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Concrete5GraphqlWebsocket\GraphQl\SecurityHelper;
+use Concrete5GraphqlWebsocket\PackageHelpers;
 
 class SchemaBuilder
 {
@@ -26,7 +27,7 @@ class SchemaBuilder
     {
         self::$schemafiles[] = $schemafile;
 
-        if ((bool)Facade::getFacadeApplication()->make('config')->get('concrete.cache.graphql_dev_mode')) {
+        if ((bool)PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
             self::refreshSchemaMerge();
         }
     }
@@ -122,7 +123,7 @@ class SchemaBuilder
 
     public static function hasSchema()
     {
-        if ((bool)Facade::getFacadeApplication()->make('config')->get('concrete.cache.graphql_dev_mode')) {
+        if ((bool)PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
             self::refreshSchemaMerge();
         }
         if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
@@ -142,13 +143,13 @@ class SchemaBuilder
             if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
                 $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
             } else {
-                if ((bool)Facade::getFacadeApplication()->make('config')->get('concrete.cache.graphql_dev_mode')) {
+                if ((bool)PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
                     self::refreshSchemaMerge();
                 }
             }
 
             if ($typeDefs != '') {
-                if ((bool)Facade::getFacadeApplication()->make('config')->get('concrete.cache.graphql_dev_mode')) {
+                if ((bool)PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
                     self::refreshSchemaMerge();
                 }
                 if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
