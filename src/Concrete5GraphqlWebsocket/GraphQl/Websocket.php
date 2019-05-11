@@ -6,6 +6,7 @@ defined('C5_EXECUTE') or die("Access Denied.");
 use Siler\GraphQL as SilerGraphQL;
 use Concrete\Core\Support\Facade\Facade;
 use Events;
+use Concrete5GraphqlWebsocket\PackageHelpers;
 
 class Websocket
 {
@@ -30,7 +31,7 @@ class Websocket
                 //After all on_start (when all graphql schemas are built) start the server
                 Events::addListener('on_before_console_run', function ($event) {
                     $app = Facade::getFacadeApplication();
-                    $config = $app->make('config');
+                    $config = PackageHelpers::getFileConfig($app);
                     $args = isset($_SERVER['argv']) ? $_SERVER['argv'] : null;
                     $hasPort = false;
                     foreach ($args as $arg) {
@@ -51,10 +52,10 @@ class Websocket
                             $schema = \Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder::get();
 
                             if ($schema && $port > 0) {
-                                if ($config->get('concrete.websocket.debug')) {
+                                if ($config->get('websocket.debug')) {
                                     echo 'start running server with pid ' . posix_getpid() . ' on 127.0.0.1:' . $port . ' at ' . date(DATE_ATOM) . "\n";
                                 }
-                                $config->save('concrete.websocket.servers.' . $port, posix_getpid());
+                                $config->save('websocket.servers.' . $port, posix_getpid());
                                 SilerGraphQL\subscriptions($schema, [], '127.0.0.1', $port)->run();
                             }
                         }

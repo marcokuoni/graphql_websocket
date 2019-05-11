@@ -10,6 +10,7 @@ use Route;
 use Concrete5GraphqlWebsocket\GraphQl\Websocket;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
+use Concrete5GraphqlWebsocket\PackageHelpers;
 
 class Controller extends Package
 {
@@ -22,6 +23,7 @@ class Controller extends Package
     protected $pkg;
     protected $pkgAutoloaderRegistries = array(
         'src/Concrete5GraphqlWebsocket/GraphQl' => '\Concrete5GraphqlWebsocket\GraphQl',
+        'src/Concrete5GraphqlWebsocket' => '\Concrete5GraphqlWebsocket',
     );
 
     public function on_start()
@@ -34,6 +36,7 @@ class Controller extends Package
             return $server->addMiddleware($this->app->make(Middleware::class));
         });
 
+        PackageHelpers::setPackageHandle($this->pkgHandle);
         Websocket::run();
     }
 	
@@ -51,15 +54,17 @@ class Controller extends Package
 
     public function uninstall()
     { 
-        $this->app->make('config')->save('concrete.websocket.debug', false);
-        $servers = (array)($this->app->make('config')->get('concrete.websocket.servers'));
-        $this->app->make('config')->save('concrete.websocket.servers', array());
+
+        $config = $this->getFileConfig();
+        $config->save('websocket.debug', false);
+        $servers = (array)$config->get('concrete.websocket.servers');
         foreach ($servers as $port => $pid) {
             $pid = (int)$pid;
             if ($pid > 0) {
                 WebsocketHelpers::stop($pid);
             }
         }
+        $config->save('concrete.websocket.servers', array());
 
         $this->removeSinglePage('/dashboard/system/environment/graphql');
         SchemaBuilder::deleteSchemaFile();
