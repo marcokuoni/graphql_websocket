@@ -16,7 +16,7 @@ class Controller extends Package
 {
 
     protected $appVersionRequired = '8.5.1';
-    protected $pkgVersion = '1.1.4';
+    protected $pkgVersion = '1.2.0';
     protected $pkgHandle = 'concrete5_graphql_websocket';
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
