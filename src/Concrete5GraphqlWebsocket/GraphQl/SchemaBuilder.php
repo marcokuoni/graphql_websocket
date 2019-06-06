@@ -13,10 +13,16 @@ use Concrete\Core\Support\Facade\Facade;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Concrete5GraphqlWebsocket\GraphQl\SecurityHelper;
 use Concrete5GraphqlWebsocket\PackageHelpers;
+use Ola\GraphQL\Tools\MergeSchemas;
 
 class SchemaBuilder
 {
     protected static $schemafiles = array();
+
+    protected static $queries = array();
+    protected static $mutations = array();
+    protected static $subscriptions = array();
+    protected static $fileLines = array();
 
     protected static $schema = array();
     protected static $resolver = array();
@@ -41,79 +47,71 @@ class SchemaBuilder
     {
         if (count(self::$schemafiles)  > 0 && count(self::$resolver) > 0) {
             self::$schema = array();
+            self::$queries = array();
+            self::$mutations = array();
+            self::$subscriptions = array();
+            self::$fileLines = array();
+
             foreach (self::$schemafiles as $filepath) {
                 $schemaFile = file_get_contents($filepath);
-                $schema = array();
 
-
-                preg_match_all('/type\s\w*\s{/', $schemaFile, $schema);
-                if (count($schema) > 0) {
-                    $schema = $schema[0]; //preg_match_all creates an array in an array
-                    $newSchema = array();
-
-                    foreach ($schema as $type) {
-                        if ($type !== '') {
-                            if (
-                                $type !== 'type Query {' &&
-                                $type !== 'type Mutation {' &&
-                                $type !== 'type Subscription {'
-                            ) {
-                                foreach ($newSchema as $newType => $value) {
-                                    if ($type === $newType) {
-                                        throw new \Exception(t('Over all GraphQl types in your file:') . ' ' . $filepath . ' ' . t('exists two times the same type: ') . ' ' . $newType);
-                                    }
-                                }
-                            }
-                            $newSchema[$type] = '';
-                        }
-                    }
-                    $schema = $newSchema;
-                }
-                $currentType = '';
                 $values = '';
                 $recorder = false;
-
+                $currentType = '';
+                $newSpecialEntry = false;
                 foreach (preg_split("/((\r?\n)|(\r\n?))/", $schemaFile) as $line) {
-                    if ($line != '') {
-                        if (preg_match('/}/', $line) != 0) {
-                            $recorder = false;
-                            $schema[$currentType] = $values;
+                    if ($currentType !== '' && preg_match('/}/', $line) != 0) {
+                        $recorder = false;
+
+                        switch ($currentType) {
+                            case 'query':
+                                self::$queries[] = $values;
+                                break;
+                            case 'mutation':
+                                self::$mutations[] = $values;
+                                break;
+                            case 'subscription':
+                                self::$subscriptions[] = $values;
+                                break;
                         }
+                        $values = '';
+                        $currentType = '';
+                        $newSpecialEntry = true;
+                    } else {
                         if ($recorder) {
                             $values .= '    ' . $line . "\r\n";
-                        }
-                        foreach ($schema as $type => $emptyValues) {
-                            if ($type != '' && strpos($line, $type) !== false) {
+                        } else {
+                            if (strpos(strtolower($line), strtolower('type Query')) !== false) {
                                 $recorder = true;
+                                if ($values !== '') {
+                                    self::$fileLines[] = $values;
+                                }
                                 $values = '';
-                                $currentType = $type;
-                                break;
+                                $currentType = 'query';
+                            } else if (strpos(strtolower($line), strtolower('type Mutation')) !== false) {
+                                $recorder = true;
+                                if ($values !== '') {
+                                    self::$fileLines[] = $values;
+                                }
+                                $values = '';
+                                $currentType = 'mutation';
+                            } else if (strpos(strtolower($line), strtolower('type Subscription')) !== false) {
+                                $recorder = true;
+                                if ($values !== '') {
+                                    self::$fileLines[] = $values;
+                                }
+                                $values = '';
+                                $currentType = 'subscription';
+                            } else {
+                                if ((!$newSpecialEntry || $line !== '')) {
+                                    $values .= $line . "\r\n";
+                                }
                             }
                         }
                     }
                 }
-
-                foreach ($schema as $newType => $newValues) {
-                    if (
-                        $newType === 'type Query {' ||
-                        $newType === 'type Mutation {' ||
-                        $newType === 'type Subscription {'
-                    ) {
-                        $oldValue = '';
-                        foreach (self::$schema as $type => $value) {
-                            if ($newType === $type) {
-                                $oldValue = $value;
-                            }
-                        }
-                        self::$schema[$newType] = $newValues . ($oldValue ? $oldValue : '');
-                    } else {
-                        foreach (self::$schema as $type => $value) {
-                            if ($newType === $type) {
-                                throw new \Exception(t('Over all GraphQl schema files exists two times the same type:') . ' ' . $newType . ' ' . t('second time found in') . ' ' . $filepath);
-                            }
-                        }
-                        self::$schema[$newType] = $newValues;
-                    }
+                if ($values !== '') {
+                    self::$fileLines[] = $values;
                 }
             }
 
@@ -176,14 +174,34 @@ class SchemaBuilder
     {
         $schemaFile = '';
 
-        foreach (self::$schema as $type => $values) {
-            $schemaFile .= $type . "\r\n";
-            if (is_array($values)) {
-                foreach ($values as $value) {
-                    $schemaFile .= $value;
-                }
-            } else {
-                $schemaFile .= $values;
+        if (count(self::$fileLines) > 0) {
+            foreach (self::$fileLines as $fileLine) {
+                $schemaFile .= $fileLine;
+            }
+        }
+
+        $schemaFile .=  "\r\n";
+
+        if (count(self::$queries) > 0) {
+            $schemaFile .= 'type Query {' . "\r\n";
+            foreach (self::$queries as $query) {
+                $schemaFile .= $query . "\r\n";
+            }
+            $schemaFile .= '}' . "\r\n" . "\r\n";
+        }
+
+        if (count(self::$mutations) > 0) {
+            $schemaFile .= 'type Mutation {' . "\r\n";
+            foreach (self::$mutations as $mutation) {
+                $schemaFile .= $mutation . "\r\n";
+            }
+            $schemaFile .= '}' . "\r\n" . "\r\n";
+        }
+
+        if (count(self::$subscriptions) > 0) {
+            $schemaFile .= 'type Subscription {' . "\r\n";
+            foreach (self::$subscriptions as $subscription) {
+                $schemaFile .= $subscription . "\r\n";
             }
             $schemaFile .= '}' . "\r\n" . "\r\n";
         }
