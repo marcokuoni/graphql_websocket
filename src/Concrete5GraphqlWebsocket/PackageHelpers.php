@@ -1,7 +1,8 @@
 <?php
+
 namespace Concrete5GraphqlWebsocket;
 
-defined('C5_EXECUTE') or die("Access Denied.");
+defined('C5_EXECUTE') or die('Access Denied.');
 
 use Concrete\Core\Config\Repository\Liaison;
 
@@ -19,7 +20,8 @@ class PackageHelpers
         return self::$fileConfig;
     }
 
-    public static function setPackageHandle($pkgHandle) {
+    public static function setPackageHandle($pkgHandle)
+    {
         self::$pkgHandle = $pkgHandle;
     }
 

@@ -1,31 +1,24 @@
 <?php
+
 namespace Concrete5GraphqlWebsocket\GraphQl;
 
-defined('C5_EXECUTE') or die("Access Denied.");
+defined('C5_EXECUTE') or die('Access Denied.');
 
-use Siler\GraphQL as SilerGraphQL;
-
-use GraphQL\Type\Schema as SchemaType;
-
-use GraphQL\Type\Definition\ObjectType;
-use GraphQL\Type\Definition\Type;
 use Concrete\Core\Support\Facade\Facade;
-use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
-use Concrete5GraphqlWebsocket\GraphQl\SecurityHelper;
 use Concrete5GraphqlWebsocket\PackageHelpers;
-use Ola\GraphQL\Tools\MergeSchemas;
+use Siler\GraphQL as SilerGraphQL;
 
 class SchemaBuilder
 {
-    protected static $schemafiles = array();
+    protected static $schemafiles = [];
 
-    protected static $queries = array();
-    protected static $mutations = array();
-    protected static $subscriptions = array();
-    protected static $fileLines = array();
+    protected static $queries = [];
+    protected static $mutations = [];
+    protected static $subscriptions = [];
+    protected static $fileLines = [];
 
-    protected static $schema = array();
-    protected static $resolver = array();
+    protected static $schema = [];
+    protected static $resolver = [];
     protected static $basePath = DIR_CONFIG_SITE . '/graphql';
     protected static $mergeSchemaFileName = 'merged_schema.gql';
 
@@ -33,7 +26,7 @@ class SchemaBuilder
     {
         self::$schemafiles[] = $schemafile;
 
-        if ((bool)PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
+        if ((bool) PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
             self::refreshSchemaMerge();
         }
     }
@@ -45,12 +38,12 @@ class SchemaBuilder
 
     public static function refreshSchemaMerge()
     {
-        if (count(self::$schemafiles)  > 0 && count(self::$resolver) > 0) {
-            self::$schema = array();
-            self::$queries = array();
-            self::$mutations = array();
-            self::$subscriptions = array();
-            self::$fileLines = array();
+        if (count(self::$schemafiles) > 0 && count(self::$resolver) > 0) {
+            self::$schema = [];
+            self::$queries = [];
+            self::$mutations = [];
+            self::$subscriptions = [];
+            self::$fileLines = [];
 
             foreach (self::$schemafiles as $filepath) {
                 $schemaFile = file_get_contents($filepath);
@@ -88,14 +81,14 @@ class SchemaBuilder
                                 }
                                 $values = '';
                                 $currentType = 'query';
-                            } else if (strpos(strtolower($line), strtolower('type Mutation')) !== false) {
+                            } elseif (strpos(strtolower($line), strtolower('type Mutation')) !== false) {
                                 $recorder = true;
                                 if ($values !== '') {
                                     self::$fileLines[] = $values;
                                 }
                                 $values = '';
                                 $currentType = 'mutation';
-                            } else if (strpos(strtolower($line), strtolower('type Subscription')) !== false) {
+                            } elseif (strpos(strtolower($line), strtolower('type Subscription')) !== false) {
                                 $recorder = true;
                                 if ($values !== '') {
                                     self::$fileLines[] = $values;
@@ -121,12 +114,13 @@ class SchemaBuilder
 
     public static function hasSchema()
     {
-        if ((bool)PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
+        if ((bool) PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
             self::refreshSchemaMerge();
         }
         if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
             $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
-            return ($typeDefs != '' && count(self::$resolver) > 0);
+
+            return $typeDefs != '' && count(self::$resolver) > 0;
         }
 
         return false;
@@ -141,13 +135,13 @@ class SchemaBuilder
             if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
                 $typeDefs = file_get_contents(self::$basePath . '/' . self::$mergeSchemaFileName);
             } else {
-                if ((bool)PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
+                if ((bool) PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
                     self::refreshSchemaMerge();
                 }
             }
 
             if ($typeDefs != '') {
-                if ((bool)PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
+                if ((bool) PackageHelpers::getFileConfig(Facade::getFacadeApplication())->get('graphql.graphql_dev_mode')) {
                     self::refreshSchemaMerge();
                 }
                 if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
@@ -180,7 +174,7 @@ class SchemaBuilder
             }
         }
 
-        $schemaFile .=  "\r\n";
+        $schemaFile .= "\r\n";
 
         if (count(self::$queries) > 0) {
             $schemaFile .= 'type Query {' . "\r\n";

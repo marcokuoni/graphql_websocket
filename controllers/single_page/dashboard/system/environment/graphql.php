@@ -1,8 +1,9 @@
 <?php
+
 namespace Concrete\Package\Concrete5GraphqlWebsocket\Controller\SinglePage\Dashboard\System\Environment;
 
-use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete\Core\Http\ResponseFactoryInterface;
+use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete\Core\Utility\Service\Validation\Numbers;
 use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
@@ -14,18 +15,18 @@ class Graphql extends DashboardPageController
     public function view()
     {
         $config = PackageHelpers::getFileConfig($this->app);
-        $websocket_servers = (array)($config->get('websocket.servers'));
+        $websocket_servers = (array) ($config->get('websocket.servers'));
         $this->set('websocket_servers', $websocket_servers);
-        $this->set('websocket_has_servers', (bool)(count(array_keys($websocket_servers)) > 0));
-        $this->set('websocket_debug', (bool)$config->get('websocket.debug'));
-        $this->set('graphql_dev_mode', (bool)$config->get('graphql.graphql_dev_mode'));
-        $max_query_complexity = (int)$config->get('graphql.max_query_complexity');
+        $this->set('websocket_has_servers', (bool) (count(array_keys($websocket_servers)) > 0));
+        $this->set('websocket_debug', (bool) $config->get('websocket.debug'));
+        $this->set('graphql_dev_mode', (bool) $config->get('graphql.graphql_dev_mode'));
+        $max_query_complexity = (int) $config->get('graphql.max_query_complexity');
         $this->set('max_query_complexity', $max_query_complexity);
-        $this->set('query_complexity_analysis', (bool)($max_query_complexity > 0));
-        $max_query_depth = (int)$config->get('graphql.max_query_depth');
+        $this->set('query_complexity_analysis', (bool) ($max_query_complexity > 0));
+        $max_query_depth = (int) $config->get('graphql.max_query_depth');
         $this->set('max_query_depth', $max_query_depth);
-        $this->set('limiting_query_depth', (bool)($max_query_depth > 0));
-        $this->set('disabling_introspection', (bool)$config->get('graphql.disabling_introspection'));
+        $this->set('limiting_query_depth', (bool) ($max_query_depth > 0));
+        $this->set('disabling_introspection', (bool) $config->get('graphql.disabling_introspection'));
     }
 
     public function update_entity_settings()
@@ -51,17 +52,17 @@ class Graphql extends DashboardPageController
                 } else {
                     $config->save('graphql.graphql_dev_mode', $gdm);
                     $config->save('graphql.disabling_introspection', $di);
-                    if($qca) {
+                    if ($qca) {
                         //this is a auto setting from graphql php, just set it to true that the user has feedback
                         $config->save('graphql.disabling_introspection', true);
-                        $config->save('graphql.max_query_complexity', (int)$this->post('MAX_QUERY_COMPLEXITY'));
+                        $config->save('graphql.max_query_complexity', (int) $this->post('MAX_QUERY_COMPLEXITY'));
                     } else {
                         $config->save('graphql.max_query_complexity', 0);
                     }
-                    if($lqd) {
+                    if ($lqd) {
                         //this is a auto setting from graphql php, just set it to true that the user has feedback
                         $config->save('graphql.disabling_introspection', true);
-                        $config->save('graphql.max_query_depth', (int)$this->post('MAX_QUERY_DEPTH'));
+                        $config->save('graphql.max_query_depth', (int) $this->post('MAX_QUERY_DEPTH'));
                     } else {
                         $config->save('graphql.max_query_depth', 0);
                     }
@@ -71,8 +72,8 @@ class Graphql extends DashboardPageController
 
                     if ($w) {
                         $config->save('websocket.debug', $wd);
-                        $servers = (array)($config->get('websocket.servers'));
-                        $config->save('websocket.servers', array());
+                        $servers = (array) ($config->get('websocket.servers'));
+                        $config->save('websocket.servers', []);
                         $websocketsPorts = $this->post('WEBSOCKET_PORTS');
                         foreach ($websocketsPorts as $websocketsPort) {
                             $hasServerAlready = false;
@@ -88,10 +89,10 @@ class Graphql extends DashboardPageController
                         }
                     } else {
                         $config->save('websocket.debug', false);
-                        $servers = (array)($config->get('websocket.servers'));
-                        $config->save('websocket.servers', array());
+                        $servers = (array) ($config->get('websocket.servers'));
+                        $config->save('websocket.servers', []);
                         foreach ($servers as $port => $pid) {
-                            $pid = (int)$pid;
+                            $pid = (int) $pid;
                             if ($pid > 0) {
                                 WebsocketHelpers::stop($pid);
                             }
@@ -123,7 +124,7 @@ class Graphql extends DashboardPageController
             if (!$valn->integer($rawPid, 0)) {
                 throw new Exception(sprintf('Invalid parameters: %s', 'pids'));
             }
-            $pid = (int)$rawPid;
+            $pid = (int) $rawPid;
             if (in_array($pid, $pids, true)) {
                 throw new Exception(sprintf('Invalid parameters: %s', 'pids'));
             }
@@ -132,10 +133,10 @@ class Graphql extends DashboardPageController
 
         $success = true;
         foreach ($pids as $pid) {
-            $pid = (int)$pid;
+            $pid = (int) $pid;
             $currentPort = 0;
 
-            $servers = (array)($config->get('websocket.servers'));
+            $servers = (array) ($config->get('websocket.servers'));
             foreach ($servers as $port => $oldPid) {
                 if ($pid == $oldPid) {
                     $currentPort = $port;
@@ -146,7 +147,7 @@ class Graphql extends DashboardPageController
 
             if (!$success) {
                 throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
-            } else if ($currentPort > 0) {
+            } elseif ($currentPort > 0) {
                 WebsocketHelpers::start($currentPort);
             }
         }
@@ -176,7 +177,7 @@ class Graphql extends DashboardPageController
             if (!$valn->integer($rawPid, 0)) {
                 throw new Exception(sprintf('Invalid parameters: %s', 'pids'));
             }
-            $pid = (int)$rawPid;
+            $pid = (int) $rawPid;
             if (in_array($pid, $pids, true)) {
                 throw new Exception(sprintf('Invalid parameters: %s', 'pids'));
             }
@@ -185,9 +186,9 @@ class Graphql extends DashboardPageController
 
         $success = true;
         foreach ($pids as $pid) {
-            $pid = (int)$pid;
+            $pid = (int) $pid;
 
-            $servers = (array)($config->get('websocket.servers'));
+            $servers = (array) ($config->get('websocket.servers'));
             foreach ($servers as $port => $oldPid) {
                 if ($pid == $oldPid) {
                     $config->save('websocket.servers.' . $port, '');
@@ -223,7 +224,7 @@ class Graphql extends DashboardPageController
             if (!$valn->integer($rawPort, 0)) {
                 throw new Exception(sprintf('Invalid parameters: %s', 'ports'));
             }
-            $port = (int)$rawPort;
+            $port = (int) $rawPort;
             if (in_array($port, $ports, true)) {
                 throw new Exception(sprintf('Invalid parameters: %s', 'ports'));
             }
@@ -231,7 +232,7 @@ class Graphql extends DashboardPageController
         }
 
         foreach ($ports as $port) {
-            $port = (int)$port;
+            $port = (int) $port;
             WebsocketHelpers::start($port);
             sleep(1);
         }
@@ -255,11 +256,11 @@ class Graphql extends DashboardPageController
         if (!$valn->integer($rawPort, 0)) {
             throw new Exception(sprintf('Invalid parameters: %s', 'port'));
         }
-        $port = (int)$rawPort;
-        $pid = (int)$rawPid;
+        $port = (int) $rawPort;
+        $pid = (int) $rawPid;
 
-        $servers = (array)($config->get('websocket.servers'));
-        $config->save('websocket.servers', array());
+        $servers = (array) ($config->get('websocket.servers'));
+        $config->save('websocket.servers', []);
         foreach ($servers as $oldPort => $oldPid) {
             if ($pid > 0 && $pid == $oldPid) {
                 $success = WebsocketHelpers::stop($pid);
@@ -267,14 +268,14 @@ class Graphql extends DashboardPageController
                 if (!$success) {
                     throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
                 }
-            } else if ($port !== $oldPort) {
+            } elseif ($port !== $oldPort) {
                 $config->save('websocket.servers.' . $oldPort, $oldPid);
             }
         }
 
         if (!$pid || $success) {
             $this->flash('success', t('Websocket server removed'));
-        } else if ($pid > 0) {
+        } elseif ($pid > 0) {
             $this->flash('error', t('Could not remove websocket server'));
         }
 
