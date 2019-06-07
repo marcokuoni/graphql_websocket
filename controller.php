@@ -4,14 +4,14 @@ namespace Concrete\Package\Concrete5GraphqlWebsocket;
 
 use Concrete\Core\Http\ServerInterface;
 use Concrete\Core\Package\Package;
+use Concrete\Core\Page\Page;
+use Concrete\Core\Page\Single as SinglePage;
+use Concrete\Core\Routing\RouterInterface;
 use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
 use Concrete5GraphqlWebsocket\GraphQl\Websocket;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Concrete5GraphqlWebsocket\PackageHelpers;
 use Custom\Space\Middleware;
-use Page;
-use Route;
-use SinglePage;
 
 class Controller extends Package
 {
@@ -28,8 +28,7 @@ class Controller extends Package
 
     public function on_start()
     {
-        Route::register('/graphql', 'Concrete5GraphqlWebsocket\GraphQl\Api::view');
-
+        $this->app->make(RouterInterface::class)->register('/graphql', 'Concrete5GraphqlWebsocket\GraphQl\Api::view');
         // Extend the ServerInterface binding so that when concrete5 creates the http server we can add our middleware
         $this->app->extend(ServerInterface::class, function (ServerInterface $server) {
             // Add our custom middleware
