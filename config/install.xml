@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<concrete5-cif version="1.0">
+
+    <singlepages>
+        <page package="concrete5_graphql_websocket" path="/dashboard/system/environment/graphql" name="GraphQL / Websocket" description="Change the settings for GraphQL and the Websocket Servers">
+            <attributes>
+                <attributekey handle="meta_keywords">
+                    <value>graphql, websocket, socket, server</value>
+                </attributekey>
+            </attributes>
+        </page>
+    </singlepages>
+
+</concrete5-cif>

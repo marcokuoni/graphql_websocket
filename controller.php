@@ -4,14 +4,11 @@ namespace Concrete\Package\Concrete5GraphqlWebsocket;
 
 use Concrete\Core\Http\ServerInterface;
 use Concrete\Core\Package\Package;
-use Concrete\Core\Page\Page;
-use Concrete\Core\Page\Single as SinglePage;
 use Concrete\Core\Routing\RouterInterface;
 use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
 use Concrete5GraphqlWebsocket\GraphQl\Websocket;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Concrete5GraphqlWebsocket\PackageHelpers;
-use Exception;
 
 class Controller extends Package
 {
@@ -20,7 +17,6 @@ class Controller extends Package
     protected $pkgHandle = 'concrete5_graphql_websocket';
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
-    protected $pkg;
     protected $pkgAutoloaderRegistries = [
         'src/Concrete5GraphqlWebsocket/GraphQl' => '\Concrete5GraphqlWebsocket\GraphQl',
         'src/Concrete5GraphqlWebsocket' => '\Concrete5GraphqlWebsocket',
@@ -33,17 +29,16 @@ class Controller extends Package
         Websocket::run();
     }
 
-    public function install() {
-        $this->pkg = parent::install();
-        $this->addSinglePages();
+    public function install()
+    {
+        parent::install();
+        $this->installXML();
     }
 
-    public function upgrade() {
-        $result = parent::upgrade();
-        $this->pkg = Package::getByHandle($this->pkgHandle);
-        $this->addSinglePages();
-
-        return $result;
+    public function upgrade()
+    {
+        parent::upgrade();
+        $this->installXML();
     }
 
     public function uninstall()
@@ -58,33 +53,13 @@ class Controller extends Package
             }
         }
         $config->save('concrete.websocket.servers', []);
-
-        $this->removeSinglePage('/dashboard/system/environment/graphql');
         SchemaBuilder::deleteSchemaFile();
 
         parent::uninstall();
     }
 
-    private function addSinglePages() {
-        $this->addSinglePage('/dashboard/system/environment/graphql', t('GraphQL / Websocket'), t('Change the settings for GraphQL and the Websocket Servers'));
-    }
-
-    private function addSinglePage($path, $name, $description) {
-        $singlePage = Page::getByPath($path);
-        if(!is_object($singlePage) || !(int) ($singlePage->getCollectionID())){
-            $singlePage = SinglePage::add($path, $this->pkg);
-        }
-        if(is_object($singlePage) && (int) ($singlePage->getCollectionID())){
-            $singlePage->update(['cName' => $name, 'cDescription' => $description]);
-        }else{
-            throw new Exception(t('Error: %s page not created', $path));
-        }
-    }
-
-    private function removeSinglePage($path) {
-        $singlePage = Page::getByPath($path);
-        if(is_object($singlePage) && (int) ($singlePage->getCollectionID())){
-            $singlePage->delete();
-        }
+    private function installXML()
+    {
+        $this->installContentFile('config/install.xml');
     }
 }
