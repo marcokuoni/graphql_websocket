@@ -1,38 +1,38 @@
 <?php
+
 namespace Concrete5GraphqlWebsocket\GraphQl;
 
-defined('C5_EXECUTE') or die("Access Denied.");
+defined('C5_EXECUTE') or die('Access Denied.');
 
 use Concrete\Core\Support\Facade\Facade;
-
+use Concrete5GraphqlWebsocket\PackageHelpers;
+use GraphQL\Validator\DocumentValidator;
+use GraphQL\Validator\Rules\DisableIntrospection;
 use GraphQL\Validator\Rules\QueryComplexity;
 use GraphQL\Validator\Rules\QueryDepth;
-use GraphQL\Validator\Rules\DisableIntrospection;
-use GraphQL\Validator\DocumentValidator;
-use Concrete5GraphqlWebsocket\PackageHelpers;
 
 class SecurityHelper
 {
     public static function setSecurities()
-    { 
+    {
         $app = Facade::getFacadeApplication();
         $config = PackageHelpers::getFileConfig($app);
 
-        $maxQueryComplexity = (int)$config->get('graphql.max_query_complexity');
-        if($maxQueryComplexity > 0) {
+        $maxQueryComplexity = (int) $config->get('graphql.max_query_complexity');
+        if ($maxQueryComplexity > 0) {
             self::setQueryComplexityAnalysis($maxQueryComplexity);
         } else {
             self::removeQueryComplexityAnalysis($maxQueryComplexity);
         }
 
-        $maxDepth = (int)$config->get('graphql.max_query_depth');
-        if($maxDepth > 0) {
+        $maxDepth = (int) $config->get('graphql.max_query_depth');
+        if ($maxDepth > 0) {
             self::setLimitingQueryDepth($maxDepth);
         } else {
             self::removeLimitingQueryDepth();
         }
 
-        if ((bool)$config->get('graphql.disabling_introspection')) {
+        if ((bool) $config->get('graphql.disabling_introspection')) {
             self::setDisablingIntrospection();
         } else {
             self::removeDisablingIntrospection();
@@ -45,7 +45,8 @@ class SecurityHelper
         DocumentValidator::addRule($rule);
     }
 
-    private static function removeQueryComplexityAnalysis() {
+    private static function removeQueryComplexityAnalysis()
+    {
         DocumentValidator::addRule(new QueryComplexity(QueryComplexity::DISABLED));
     }
 
@@ -55,7 +56,8 @@ class SecurityHelper
         DocumentValidator::addRule($rule);
     }
 
-    private static function removeLimitingQueryDepth() {
+    private static function removeLimitingQueryDepth()
+    {
         DocumentValidator::addRule(new QueryDepth(QueryDepth::DISABLED));
     }
 
@@ -64,7 +66,8 @@ class SecurityHelper
         DocumentValidator::addRule(new DisableIntrospection());
     }
 
-    private static function removeDisablingIntrospection() {
+    private static function removeDisablingIntrospection()
+    {
         DocumentValidator::addRule(new DisableIntrospection(DisableIntrospection::DISABLED));
     }
 }

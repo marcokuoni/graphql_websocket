@@ -44,7 +44,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             </div>
             <div data-fields="QUERY_COMPLEXITY_ANALYSIS" style="padding-left: 30px;">
                 <?php
-                if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                if (count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
                     ?>
                     <div class="help-block">
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
@@ -54,7 +54,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             ?>
                 <div class="form-group">
                     <?= $form->label('MAX_QUERY_COMPLEXITY', t('Max Query Complexity')) ?>
-                    <?= $form->text('MAX_QUERY_COMPLEXITY', (INT)$max_query_complexity > 0 ? (INT)$max_query_complexity : 100) ?>
+                    <?= $form->text('MAX_QUERY_COMPLEXITY', (int) $max_query_complexity > 0 ? (int) $max_query_complexity : 100) ?>
                 </div>
             </div>
 
@@ -75,7 +75,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             </div>
             <div data-fields="LIMITING_QUERY_DEPTH" style="padding-left: 30px;">
                 <?php
-                if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                if (count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
                     ?>
                     <div class="help-block">
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
@@ -86,7 +86,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                 <div class="form-group">
                     <div class="form-group">
                         <?= $form->label('MAX_QUERY_DEPTH', t('Max Query Depth')) ?>
-                        <?= $form->text('MAX_QUERY_DEPTH', (INT)$max_query_depth > 0 ? (INT)$max_query_depth : 10) ?>
+                        <?= $form->text('MAX_QUERY_DEPTH', (int) $max_query_depth > 0 ? (int) $max_query_depth : 10) ?>
                     </div>
                 </div>
             </div>
@@ -108,7 +108,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             </div>
             <div data-fields="DISABLING_INTROSPECTION" style="padding-left: 30px;">
                 <?php
-                if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+                if (count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
                     ?>
                     <div class="help-block">
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
@@ -160,9 +160,9 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                         foreach ($websocket_servers as $port => $pid) {
                             ?>
                                 <div class="servers" data-pid="<?= $pid ?>">
-                                    <h4><?= ($count + 1) . '. ' . t('Server') . (((int)$pid > 0) ? ' ' . t('currently running on pid:') . ' ' . $pid : '') ?></h4>
+                                    <h4><?= ($count + 1) . '. ' . t('Server') . (((int) $pid > 0) ? ' ' . t('currently running on pid:') . ' ' . $pid : '') ?></h4>
                                     <?php
-                                    if ((int)$pid > 0) {
+                                    if ((int) $pid > 0) {
                                         ?>
                                         <a class="btn btn-danger" data-pid="<?= $pid ?>" name="stop-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Stop this websocket server, disconnects all clients.') ?></a>
                                     <?php
@@ -176,21 +176,21 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
                                     <div class="form-group">
                                         <?= $form->label('WEBSOCKET_PORTS[]', t('Port')) ?>
                                         <?php
-                                        if ((int)$pid > 0) {
+                                        if ((int) $pid > 0) {
                                             ?>
-                                            <?= $form->hidden('WEBSOCKET_PORTS[]', (int)$port) ?>
-                                            <p><?= t('Stop this websocket server to change the port %s', (int)$port) ?></p>
+                                            <?= $form->hidden('WEBSOCKET_PORTS[]', (int) $port) ?>
+                                            <p><?= t('Stop this websocket server to change the port %s', (int) $port) ?></p>
                                         <?php
                                     } else {
                                         ?>
-                                            <?= $form->text('WEBSOCKET_PORTS[]', (int)$port) ?>
+                                            <?= $form->text('WEBSOCKET_PORTS[]', (int) $port) ?>
                                         <?php
                                     }
                                     ?>
                                     </div>
                                 </div>
                                 <?php
-                                $count++;
+                                ++$count;
                             }
                         }
                         ?>
@@ -240,7 +240,7 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
         <div class="ccm-dashboard-form-actions">
             <button class="pull-left btn btn-danger" name="refresh" value="1" type="submit"><?= t('Refresh GraphQL Schema') ?></button>
             <?php
-            if (count($websocket_servers) > 0 && (int)array_values($websocket_servers)[0] > 0) {
+            if (count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
                 ?>
                 <a class="pull-left btn btn-danger" name="restart-servers" style="margin-left: 15px;" href="javascript:void(0);"><?= t('Restart websocket servers, disconnects all clients.') ?></a>
             <?php
@@ -278,19 +278,19 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
             tokenName = <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>,
             actions = <?= json_encode([
                             'restartWebsockets' => [
-                                'url' => (string)$view->action('restartWebsocketServer'),
+                                'url' => (string) $view->action('restartWebsocketServer'),
                                 'token' => $token->generate('ccm-restart_websockets'),
                             ],
                             'stopWebsocket' => [
-                                'url' => (string)$view->action('stopWebsocketServer'),
+                                'url' => (string) $view->action('stopWebsocketServer'),
                                 'token' => $token->generate('ccm-stop_websocket'),
                             ],
                             'startWebsocket' => [
-                                'url' => (string)$view->action('startWebsocketServer'),
+                                'url' => (string) $view->action('startWebsocketServer'),
                                 'token' => $token->generate('ccm-start_websocket'),
                             ],
                             'removeWebsocket' => [
-                                'url' => (string)$view->action('removeWebsocketServer'),
+                                'url' => (string) $view->action('removeWebsocketServer'),
                                 'token' => $token->generate('ccm-remove_websocket'),
                             ],
                         ]) ?>;

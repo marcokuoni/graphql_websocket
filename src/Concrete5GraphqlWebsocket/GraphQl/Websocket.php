@@ -1,12 +1,13 @@
 <?php
+
 namespace Concrete5GraphqlWebsocket\GraphQl;
 
-defined('C5_EXECUTE') or die("Access Denied.");
+defined('C5_EXECUTE') or die('Access Denied.');
 
-use Siler\GraphQL as SilerGraphQL;
 use Concrete\Core\Support\Facade\Facade;
-use Events;
 use Concrete5GraphqlWebsocket\PackageHelpers;
+use Events;
+use Siler\GraphQL as SilerGraphQL;
 
 class Websocket
 {
@@ -20,7 +21,7 @@ class Websocket
             $hasPort = false;
             foreach ($args as $arg) {
                 if ($hasPort) {
-                    $port = (int)$arg;
+                    $port = (int) $arg;
                     $hasPort = false;
                 }
                 if ($arg === '--websocket-port' || $arg === '-wp') {
@@ -36,7 +37,7 @@ class Websocket
                     $hasPort = false;
                     foreach ($args as $arg) {
                         if ($hasPort) {
-                            $port = (int)$arg;
+                            $port = (int) $arg;
                             $hasPort = false;
                         }
                         if ($arg === '--websocket-port' || $arg === '-wp') {
