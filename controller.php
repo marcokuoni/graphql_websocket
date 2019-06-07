@@ -12,6 +12,7 @@ use Concrete5GraphqlWebsocket\GraphQl\Websocket;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Concrete5GraphqlWebsocket\PackageHelpers;
 use Custom\Space\Middleware;
+use Exception;
 
 class Controller extends Package
 {
@@ -83,7 +84,7 @@ class Controller extends Package
         if(is_object($singlePage) && (int) ($singlePage->getCollectionID())){
             $singlePage->update(['cName' => $name, 'cDescription' => $description]);
         }else{
-            throw new Exception(t('Error: ' . $path . ' page not created'));
+            throw new Exception(t('Error: %s page not created', $path));
         }
     }
 
