@@ -10,10 +10,5 @@
         "webonyx/graphql-php": "^0.13.1",
         "cboden/ratchet": "^0.4.1",
         "ratchet/pawl": "^0.3.4"
-    },
-    "autoload": {
-        "psr-4": {
-            "Custom\\Space\\": "src"
-        }
     }
 }

@@ -9,7 +9,6 @@ use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
 use Concrete5GraphqlWebsocket\GraphQl\Websocket;
 use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
 use Concrete5GraphqlWebsocket\PackageHelpers;
-use Custom\Space\Middleware;
 
 class Controller extends Package
 {
@@ -26,12 +25,6 @@ class Controller extends Package
     public function on_start()
     {
         $this->app->make(RouterInterface::class)->register('/graphql', 'Concrete5GraphqlWebsocket\GraphQl\Api::view');
-        // Extend the ServerInterface binding so that when concrete5 creates the http server we can add our middleware
-        $this->app->extend(ServerInterface::class, function (ServerInterface $server) {
-            // Add our custom middleware
-            return $server->addMiddleware($this->app->make(Middleware::class));
-        });
-
         PackageHelpers::setPackageHandle($this->pkgHandle);
         Websocket::run();
     }
