@@ -17,7 +17,7 @@ use Exception;
 class Controller extends Package
 {
     protected $appVersionRequired = '8.5.1';
-    protected $pkgVersion = '1.2.0';
+    protected $pkgVersion = '1.2.1';
     protected $pkgHandle = 'concrete5_graphql_websocket';
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
