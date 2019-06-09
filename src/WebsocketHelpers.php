@@ -5,7 +5,6 @@ namespace Concrete5GraphqlWebsocket;
 defined('C5_EXECUTE') or die('Access Denied.');
 
 use Concrete\Core\Support\Facade\Facade;
-use Concrete5GraphqlWebsocket\PackageHelpers;
 use Siler\GraphQL as SilerGraphQL;
 
 class WebsocketHelpers
@@ -13,10 +12,10 @@ class WebsocketHelpers
     public static function start($port)
     {
         $app = Facade::getFacadeApplication();
-        $config = PackageHelpers::getFileConfig($app);
+        $config = $app->make('config');
         $phpVersion = substr(PHP_VERSION, 0, 3);
 
-        if ((bool) $config->get('websocket.debug')) {
+        if ((bool) $config->get('concrete5_graphql_websocket::websocket.debug')) {
             $cmd = escapeshellarg('/usr/bin/php' . $phpVersion) . ' ' . escapeshellarg(DIR_BASE . '/index.php') . ' --websocket-port ' . escapeshellarg($port) . ' >> /var/log/subscription_server.log 2>&1 &';
         } else {
             $cmd = escapeshellarg('/usr/bin/php' . $phpVersion) . ' ' . escapeshellarg(DIR_BASE . '/index.php') . ' --websocket-port ' . escapeshellarg($port) . ' > /dev/null 2>/dev/null &';
@@ -49,8 +48,8 @@ class WebsocketHelpers
     public static function setSubscriptionAt()
     {
         $app = Facade::getFacadeApplication();
-        $config = PackageHelpers::getFileConfig($app);
-        $servers = (array) $config->get('websocket.servers');
+        $config = $app->make('config');
+        $servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
         foreach ($servers as $port => $pid) {
             $port = (int) $port;
             $pid = (int) $pid;
