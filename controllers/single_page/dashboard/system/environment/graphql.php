@@ -5,8 +5,8 @@ namespace Concrete\Package\Concrete5GraphqlWebsocket\Controller\SinglePage\Dashb
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete\Core\Utility\Service\Validation\Numbers;
-use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
-use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
+use Concrete5GraphqlWebsocket\SchemaBuilder;
+use Concrete5GraphqlWebsocket\WebsocketHelpers;
 use Concrete5GraphqlWebsocket\PackageHelpers;
 use Exception;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Concrete5GraphqlWebsocket\GraphQl;
+namespace Concrete5GraphqlWebsocket;
 
 defined('C5_EXECUTE') or die('Access Denied.');
 

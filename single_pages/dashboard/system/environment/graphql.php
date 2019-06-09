@@ -9,7 +9,7 @@
 /* @var Doctrine\ORM\Mapping\Driver\AnnotationDriver[] $drivers */
 
 defined('C5_EXECUTE') or die('Access Denied.');
-use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
+use Concrete5GraphqlWebsocket\SchemaBuilder;
 
 ?>
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace Concrete5GraphqlWebsocket\GraphQl;
+namespace Concrete5GraphqlWebsocket;
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
@@ -50,7 +50,7 @@ class Websocket
                         if (is_resource($connection)) {
                             fclose($connection);
                         } else {
-                            $schema = \Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder::get();
+                            $schema = \Concrete5GraphqlWebsocket\SchemaBuilder::get();
 
                             if ($schema && $port > 0) {
                                 if ($config->get('websocket.debug')) {
