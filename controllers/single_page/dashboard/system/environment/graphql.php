@@ -6,7 +6,7 @@ use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete\Core\Utility\Service\Validation\Numbers;
 use Concrete5GraphqlWebsocket\SchemaBuilder;
-use Concrete5GraphqlWebsocket\WebsocketHelpers;
+use Concrete5GraphqlWebsocket\WebsocketService;
 use Exception;
 
 class Graphql extends DashboardPageController
@@ -90,10 +90,11 @@ class Graphql extends DashboardPageController
                         $config->save('concrete5_graphql_websocket::websocket.debug', false);
                         $servers = (array) ($config->get('concrete5_graphql_websocket::websocket.servers'));
                         $config->save('concrete5_graphql_websocket::websocket.servers', []);
-                        foreach ($servers as $port => $pid) {
+                        $websocketService = $this->app->make(WebsocketService::class);
+                        foreach ($servers as $pid) {
                             $pid = (int) $pid;
                             if ($pid > 0) {
-                                WebsocketHelpers::stop($pid);
+                                $websocketService->stop($pid);
                             }
                         }
                     }
@@ -130,6 +131,7 @@ class Graphql extends DashboardPageController
             $pids[] = $pid;
         }
 
+        $websocketService = $this->app->make(WebsocketService::class);
         $success = true;
         foreach ($pids as $pid) {
             $pid = (int) $pid;
@@ -142,12 +144,12 @@ class Graphql extends DashboardPageController
                     $config->save('concrete5_graphql_websocket::websocket.servers.' . $port, '');
                 }
             }
-            $success &= WebsocketHelpers::stop($pid);
+            $success &= $websocketService->stop($pid);
 
             if (!$success) {
                 throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
             } elseif ($currentPort > 0) {
-                WebsocketHelpers::start($currentPort);
+                $websocketService->start($currentPort);
             }
         }
         if ($success) {
@@ -183,6 +185,7 @@ class Graphql extends DashboardPageController
             $pids[] = $pid;
         }
 
+        $websocketService = $this->app->make(WebsocketService::class);
         $success = true;
         foreach ($pids as $pid) {
             $pid = (int) $pid;
@@ -193,7 +196,7 @@ class Graphql extends DashboardPageController
                     $config->save('concrete5_graphql_websocket::websocket.servers.' . $port, '');
                 }
             }
-            $success &= WebsocketHelpers::stop($pid);
+            $success &= $websocketService->stop($pid);
 
             if (!$success) {
                 throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
@@ -229,10 +232,10 @@ class Graphql extends DashboardPageController
             }
             $ports[] = $port;
         }
-
+        $websocketService = $this->app->make(WebsocketService::class);
         foreach ($ports as $port) {
             $port = (int) $port;
-            WebsocketHelpers::start($port);
+            $websocketService->start($port);
             sleep(1);
         }
 
@@ -260,9 +263,10 @@ class Graphql extends DashboardPageController
 
         $servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
         $config->save('concrete5_graphql_websocket::websocket.servers', []);
+        $websocketService = $this->app->make(WebsocketService::class);
         foreach ($servers as $oldPort => $oldPid) {
             if ($pid > 0 && $pid == $oldPid) {
-                $success = WebsocketHelpers::stop($pid);
+                $success = $websocketService->stop($pid);
 
                 if (!$success) {
                     throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
