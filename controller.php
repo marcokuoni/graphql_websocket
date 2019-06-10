@@ -23,6 +23,7 @@ class Controller extends Package
     public function on_start()
     {
         $this->app->make(RouterInterface::class)->register('/graphql', 'Concrete5GraphqlWebsocket\Api::view');
+        $this->registerAutoload();
         Websocket::run();
     }
 
@@ -58,5 +59,13 @@ class Controller extends Package
     private function installXML()
     {
         $this->installContentFile('config/install.xml');
+    }
+
+    private function registerAutoload()
+    {
+        $autoloader = $this->getPackagePath() . '/vendor/autoload.php';
+        if (file_exists($autoloader)) {
+            require_once $autoloader;
+        }
     }
 }
