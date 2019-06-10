@@ -44,7 +44,7 @@ class WebsocketService
         }
         $cmd .= escapeshellarg($this->config->get('concrete5_graphql_websocket::websocket.php_exe'));
         $cmd .= ' ' . escapeshellarg(str_replace('/', DIRECTORY_SEPARATOR, DIR_BASE . '/concrete/bin/concrete5'));
-        $cmd .= ' gws:start';
+        $cmd .= ' gws:start --no-interaction --no-ansi';
         $cmd .= ' ' . (int) $port;
         if ((bool) $this->config->get('concrete5_graphql_websocket::websocket.debug')) {
             $logFile = $this->config->get('concrete5_graphql_websocket::websocket.debug_log');
