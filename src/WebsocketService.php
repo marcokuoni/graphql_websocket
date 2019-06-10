@@ -49,7 +49,7 @@ class WebsocketService
             if ($this->isWindows) {
                 $cmd .= ' >NUL 2>NUL &';
             } else {
-                $cmd .= ' /dev/null 2>/dev/null &';
+                $cmd .= ' > /dev/null 2>/dev/null &';
             }
         }
         $handle = @popen($cmd, 'r');
