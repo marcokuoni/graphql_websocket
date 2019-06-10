@@ -37,28 +37,42 @@ class WebsocketService
      */
     public function start($port)
     {
-        $cmd = escapeshellarg($this->config->get('concrete5_graphql_websocket::websocket.php_exe'));
+        if ($this->isWindows) {
+            $cmd = 'start /B ';
+        } else {
+            $cmd = '';
+        }
+        $cmd .= escapeshellarg($this->config->get('concrete5_graphql_websocket::websocket.php_exe'));
         $cmd .= ' ' . escapeshellarg(str_replace('/', DIRECTORY_SEPARATOR, DIR_BASE . '/concrete/bin/concrete5'));
-        $cmd .= ' gws:start';
+        $cmd .= ' gws:start --no-interaction --no-ansi';
         $cmd .= ' ' . (int) $port;
         if ((bool) $this->config->get('concrete5_graphql_websocket::websocket.debug')) {
             $logFile = $this->config->get('concrete5_graphql_websocket::websocket.debug_log');
             $logFile = str_replace('/', DIRECTORY_SEPARATOR, $logFile);
-            $cmd .= ' >> ' . escapeshellarg($logFile) . ' &';
+            $cmd .= ' >> ' . escapeshellarg($logFile) . ' 2>&1';
         } else {
             if ($this->isWindows) {
-                $cmd .= ' >NUL 2>NUL &';
+                $cmd .= ' >NUL 2>NUL';
             } else {
-                $cmd .= ' > /dev/null 2>/dev/null &';
+                $cmd .= ' >/dev/null 2>/dev/null';
             }
         }
-        $handle = @popen($cmd, 'r');
-        if (!is_resource($handle)) {
-            return false;
-        }
-        pclose($handle);
+        if ($this->isWindows) {
+            $handle = @popen($cmd, 'r');
+            if (!is_resource($handle)) {
+                return false;
+            }
+            pclose($handle);
 
-        return true;
+            return true;
+        }
+        $cmd .= ' &';
+
+        $output = null;
+        $rc = -1;
+        @exec($cmd, $output, $rc);
+
+        return $rc === 0;
     }
 
     /**
