@@ -44,12 +44,12 @@ class WebsocketService
         if ((bool) $this->config->get('concrete5_graphql_websocket::websocket.debug')) {
             $logFile = $this->config->get('concrete5_graphql_websocket::websocket.debug_log');
             $logFile = str_replace('/', DIRECTORY_SEPARATOR, $logFile);
-            $cmd .= ' >> ' . escapeshellarg($logFile);
+            $cmd .= ' >> ' . escapeshellarg($logFile) . ' &';
         } else {
             if ($this->isWindows) {
-                $cmd .= ' >NUL 2>NUL';
+                $cmd .= ' >NUL 2>NUL &';
             } else {
-                $cmd .= ' /dev/null 2>/dev/null';
+                $cmd .= ' /dev/null 2>/dev/null &';
             }
         }
         $handle = @popen($cmd, 'r');
