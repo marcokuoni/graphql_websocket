@@ -42,14 +42,14 @@ class Controller extends Package
     {
         $config = $this->app->make('config');
         $config->save('concrete5_graphql_websocket::websocket.debug', false);
-        $servers = (array) $config->get('concrete5_graphql_websocket::concrete.websocket.servers');
+        $servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
         foreach ($servers as $port => $pid) {
             $pid = (int) $pid;
             if ($pid > 0) {
                 WebsocketHelpers::stop($pid);
             }
         }
-        $config->save('concrete5_graphql_websocket::concrete.websocket.servers', []);
+        $config->save('concrete5_graphql_websocket::websocket.servers', []);
         SchemaBuilder::deleteSchemaFile();
 
         parent::uninstall();
