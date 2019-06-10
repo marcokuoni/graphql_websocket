@@ -47,7 +47,7 @@ EOT
         if ($pid === false) {
             $this->output->error("Failed to get the process ID!\n");
         }
-        $this->output->write("Starting running server with PID {$pid}\n");
+        $this->output->write("Starting running server with PID {$pid}\n\n\n");
         $config->save('concrete5_graphql_websocket::websocket.servers.' . $port, $pid);
         SilerGraphQL\subscriptions($schema, [], $serverIP, $port)->run();
     }
