@@ -12,7 +12,7 @@ use Concrete5GraphqlWebsocket\WebsocketHelpers;
 class Controller extends Package
 {
     protected $appVersionRequired = '8.5.1';
-    protected $pkgVersion = '1.2.4';
+    protected $pkgVersion = '1.2.5';
     protected $pkgHandle = 'concrete5_graphql_websocket';
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
