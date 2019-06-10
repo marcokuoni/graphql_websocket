@@ -2,12 +2,11 @@
 
 namespace Concrete\Package\Concrete5GraphqlWebsocket;
 
-use Concrete\Core\Http\ServerInterface;
 use Concrete\Core\Package\Package;
 use Concrete\Core\Routing\RouterInterface;
+use Concrete5GraphqlWebsocket\Console\WebsocketRunnerCommand;
 use Concrete5GraphqlWebsocket\SchemaBuilder;
-use Concrete5GraphqlWebsocket\Websocket;
-use Concrete5GraphqlWebsocket\WebsocketHelpers;
+use Concrete5GraphqlWebsocket\WebsocketService;
 
 class Controller extends Package
 {
@@ -24,13 +23,16 @@ class Controller extends Package
     {
         $this->app->make(RouterInterface::class)->register('/graphql', 'Concrete5GraphqlWebsocket\Api::view');
         $this->registerAutoload();
-        Websocket::run();
+        if ($this->app->isRunThroughCommandLineInterface()) {
+            $this->registerCLICommands();
+        }
     }
 
     public function install()
     {
         parent::install();
         $this->installXML();
+        $this->configureDefaultLogFile();
     }
 
     public function upgrade()
@@ -44,10 +46,11 @@ class Controller extends Package
         $config = $this->app->make('config');
         $config->save('concrete5_graphql_websocket::websocket.debug', false);
         $servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
-        foreach ($servers as $port => $pid) {
+        $websocketService = $this->app->make(WebsocketService::class);
+        foreach ($servers as $pid) {
             $pid = (int) $pid;
             if ($pid > 0) {
-                WebsocketHelpers::stop($pid);
+                $websocketService->stop($pid);
             }
         }
         $config->save('concrete5_graphql_websocket::websocket.servers', []);
@@ -61,11 +64,33 @@ class Controller extends Package
         $this->installContentFile('config/install.xml');
     }
 
+    private function configureDefaultLogFile()
+    {
+        $config = $this->app->make('config');
+        if ($config->get('concrete5_graphql_websocket::websocket.debug_log')) {
+            return;
+        }
+        $logFile = '/var/log/subscription_server.log';
+        if (DIRECTORY_SEPARATOR === '\\') {
+            $dir = @sys_get_temp_dir();
+            if ($dir) {
+                $logFile = rtrim(str_replace('\\', '/', $dir), '/') . 'subscription_server.log';
+            }
+        }
+        $config->save('concrete5_graphql_websocket::websocket.debug_log', $logFile);
+    }
+
     private function registerAutoload()
     {
         $autoloader = $this->getPackagePath() . '/vendor/autoload.php';
         if (file_exists($autoloader)) {
             require_once $autoloader;
         }
+    }
+
+    private function registerCLICommands()
+    {
+        $console = $this->app->make('console');
+        $console->add(new WebsocketRunnerCommand());
     }
 }

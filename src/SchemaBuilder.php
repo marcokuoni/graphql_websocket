@@ -132,9 +132,9 @@ class SchemaBuilder
 
     public static function get()
     {
-        WebsocketHelpers::setSubscriptionAt();
-        SecurityHelper::setSecurities();
         $app = Facade::getFacadeApplication();
+        $app->make(WebsocketService::class)->setSubscriptionAt();
+        SecurityHelper::setSecurities();
         $config = $app->make('config');
         
 
