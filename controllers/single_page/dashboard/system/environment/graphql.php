@@ -91,7 +91,7 @@ class Graphql extends DashboardPageController
                         $servers = (array) ($config->get('concrete5_graphql_websocket::websocket.servers'));
                         $config->save('concrete5_graphql_websocket::websocket.servers', []);
                         $websocketService = $this->app->make(WebsocketService::class);
-                        foreach ($servers as $port => $pid) {
+                        foreach ($servers as $pid) {
                             $pid = (int) $pid;
                             if ($pid > 0) {
                                 $websocketService->stop($pid);

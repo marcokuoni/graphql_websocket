@@ -30,7 +30,7 @@ EOT
         $connection = @fsockopen($serverIP, $port);
         if (is_resource($connection)) {
             fclose($connection);
-            $this->output->error("no server found!\n");
+            $this->output->error("server already exists on this port!\n");
 
             return 2;
         }
