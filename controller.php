@@ -5,10 +5,9 @@ namespace Concrete\Package\Concrete5GraphqlWebsocket;
 use Concrete\Core\Http\ServerInterface;
 use Concrete\Core\Package\Package;
 use Concrete\Core\Routing\RouterInterface;
-use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
-use Concrete5GraphqlWebsocket\GraphQl\Websocket;
-use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
-use Concrete5GraphqlWebsocket\PackageHelpers;
+use Concrete5GraphqlWebsocket\SchemaBuilder;
+use Concrete5GraphqlWebsocket\Websocket;
+use Concrete5GraphqlWebsocket\WebsocketHelpers;
 
 class Controller extends Package
 {
@@ -18,14 +17,12 @@ class Controller extends Package
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
     protected $pkgAutoloaderRegistries = [
-        'src/Concrete5GraphqlWebsocket/GraphQl' => '\Concrete5GraphqlWebsocket\GraphQl',
-        'src/Concrete5GraphqlWebsocket' => '\Concrete5GraphqlWebsocket',
+        'src' => '\Concrete5GraphqlWebsocket',
     ];
 
     public function on_start()
     {
-        $this->app->make(RouterInterface::class)->register('/graphql', 'Concrete5GraphqlWebsocket\GraphQl\Api::view');
-        PackageHelpers::setPackageHandle($this->pkgHandle);
+        $this->app->make(RouterInterface::class)->register('/graphql', 'Concrete5GraphqlWebsocket\Api::view');
         Websocket::run();
     }
 
@@ -43,16 +40,16 @@ class Controller extends Package
 
     public function uninstall()
     {
-        $config = $this->getFileConfig();
-        $config->save('websocket.debug', false);
-        $servers = (array) $config->get('concrete.websocket.servers');
+        $config = $this->app->make('config');
+        $config->save('concrete5_graphql_websocket::websocket.debug', false);
+        $servers = (array) $config->get('concrete5_graphql_websocket::concrete.websocket.servers');
         foreach ($servers as $port => $pid) {
             $pid = (int) $pid;
             if ($pid > 0) {
                 WebsocketHelpers::stop($pid);
             }
         }
-        $config->save('concrete.websocket.servers', []);
+        $config->save('concrete5_graphql_websocket::concrete.websocket.servers', []);
         SchemaBuilder::deleteSchemaFile();
 
         parent::uninstall();

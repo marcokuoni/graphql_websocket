@@ -1,11 +1,10 @@
 <?php
 
-namespace Concrete5GraphqlWebsocket\GraphQl;
+namespace Concrete5GraphqlWebsocket;
 
 defined('C5_EXECUTE') or die('Access Denied.');
 
 use Concrete\Core\Support\Facade\Facade;
-use Concrete5GraphqlWebsocket\PackageHelpers;
 use GraphQL\Validator\DocumentValidator;
 use GraphQL\Validator\Rules\DisableIntrospection;
 use GraphQL\Validator\Rules\QueryComplexity;
@@ -16,23 +15,23 @@ class SecurityHelper
     public static function setSecurities()
     {
         $app = Facade::getFacadeApplication();
-        $config = PackageHelpers::getFileConfig($app);
+        $config = $app->make('config');
 
-        $maxQueryComplexity = (int) $config->get('graphql.max_query_complexity');
+        $maxQueryComplexity = (int) $config->get('concrete5_graphql_websocket::graphql.max_query_complexity');
         if ($maxQueryComplexity > 0) {
             self::setQueryComplexityAnalysis($maxQueryComplexity);
         } else {
             self::removeQueryComplexityAnalysis($maxQueryComplexity);
         }
 
-        $maxDepth = (int) $config->get('graphql.max_query_depth');
+        $maxDepth = (int) $config->get('concrete5_graphql_websocket::graphql.max_query_depth');
         if ($maxDepth > 0) {
             self::setLimitingQueryDepth($maxDepth);
         } else {
             self::removeLimitingQueryDepth();
         }
 
-        if ((bool) $config->get('graphql.disabling_introspection')) {
+        if ((bool) $config->get('concrete5_graphql_websocket::graphql.disabling_introspection')) {
             self::setDisablingIntrospection();
         } else {
             self::removeDisablingIntrospection();

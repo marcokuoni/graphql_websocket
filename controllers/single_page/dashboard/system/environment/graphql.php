@@ -5,28 +5,27 @@ namespace Concrete\Package\Concrete5GraphqlWebsocket\Controller\SinglePage\Dashb
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete\Core\Utility\Service\Validation\Numbers;
-use Concrete5GraphqlWebsocket\GraphQl\SchemaBuilder;
-use Concrete5GraphqlWebsocket\GraphQl\WebsocketHelpers;
-use Concrete5GraphqlWebsocket\PackageHelpers;
+use Concrete5GraphqlWebsocket\SchemaBuilder;
+use Concrete5GraphqlWebsocket\WebsocketHelpers;
 use Exception;
 
 class Graphql extends DashboardPageController
 {
     public function view()
     {
-        $config = PackageHelpers::getFileConfig($this->app);
-        $websocket_servers = (array) ($config->get('websocket.servers'));
+        $config = $this->app->make('config');
+        $websocket_servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
         $this->set('websocket_servers', $websocket_servers);
         $this->set('websocket_has_servers', (bool) (count(array_keys($websocket_servers)) > 0));
-        $this->set('websocket_debug', (bool) $config->get('websocket.debug'));
-        $this->set('graphql_dev_mode', (bool) $config->get('graphql.graphql_dev_mode'));
-        $max_query_complexity = (int) $config->get('graphql.max_query_complexity');
+        $this->set('websocket_debug', (bool) $config->get('concrete5_graphql_websocket::websocket.debug'));
+        $this->set('graphql_dev_mode', (bool) $config->get('concrete5_graphql_websocket::graphql.graphql_dev_mode'));
+        $max_query_complexity = (int) $config->get('concrete5_graphql_websocket::graphql.max_query_complexity');
         $this->set('max_query_complexity', $max_query_complexity);
         $this->set('query_complexity_analysis', (bool) ($max_query_complexity > 0));
-        $max_query_depth = (int) $config->get('graphql.max_query_depth');
+        $max_query_depth = (int) $config->get('concrete5_graphql_websocket::graphql.max_query_depth');
         $this->set('max_query_depth', $max_query_depth);
         $this->set('limiting_query_depth', (bool) ($max_query_depth > 0));
-        $this->set('disabling_introspection', (bool) $config->get('graphql.disabling_introspection'));
+        $this->set('disabling_introspection', (bool) $config->get('concrete5_graphql_websocket::graphql.disabling_introspection'));
     }
 
     public function update_entity_settings()
@@ -36,7 +35,7 @@ class Graphql extends DashboardPageController
         }
         if (!$this->error->has()) {
             if ($this->isPost()) {
-                $config = PackageHelpers::getFileConfig($this->app);
+                $config = $this->app->make('config');
                 $restartWebsocket = ' ' . t('Restart the websocket server with the button on the footer to refresh also there GraphQL schema');
                 $gdm = $this->post('GRAPHQL_DEV_MODE') === 'yes';
                 $wd = $this->post('WEBSOCKET_DEBUG') === 'yes';
@@ -50,47 +49,47 @@ class Graphql extends DashboardPageController
                     $this->flash('success', t('GraphQL cache cleared, GraphQL schema updated.') . ($w ? $restartWebsocket : ''));
                     $this->redirect('/dashboard/system/environment/graphql', 'view');
                 } else {
-                    $config->save('graphql.graphql_dev_mode', $gdm);
-                    $config->save('graphql.disabling_introspection', $di);
+                    $config->save('concrete5_graphql_websocket::graphql.graphql_dev_mode', $gdm);
+                    $config->save('concrete5_graphql_websocket::graphql.disabling_introspection', $di);
                     if ($qca) {
                         //this is a auto setting from graphql php, just set it to true that the user has feedback
-                        $config->save('graphql.disabling_introspection', true);
-                        $config->save('graphql.max_query_complexity', (int) $this->post('MAX_QUERY_COMPLEXITY'));
+                        $config->save('concrete5_graphql_websocket::graphql.disabling_introspection', true);
+                        $config->save('concrete5_graphql_websocket::graphql.max_query_complexity', (int) $this->post('MAX_QUERY_COMPLEXITY'));
                     } else {
-                        $config->save('graphql.max_query_complexity', 0);
+                        $config->save('concrete5_graphql_websocket::graphql.max_query_complexity', 0);
                     }
                     if ($lqd) {
                         //this is a auto setting from graphql php, just set it to true that the user has feedback
-                        $config->save('graphql.disabling_introspection', true);
-                        $config->save('graphql.max_query_depth', (int) $this->post('MAX_QUERY_DEPTH'));
+                        $config->save('concrete5_graphql_websocket::graphql.disabling_introspection', true);
+                        $config->save('concrete5_graphql_websocket::graphql.max_query_depth', (int) $this->post('MAX_QUERY_DEPTH'));
                     } else {
-                        $config->save('graphql.max_query_depth', 0);
+                        $config->save('concrete5_graphql_websocket::graphql.max_query_depth', 0);
                     }
                     if ($gdm) {
                         SchemaBuilder::refreshSchemaMerge();
                     }
 
                     if ($w) {
-                        $config->save('websocket.debug', $wd);
-                        $servers = (array) ($config->get('websocket.servers'));
-                        $config->save('websocket.servers', []);
+                        $config->save('concrete5_graphql_websocket::websocket.debug', $wd);
+                        $servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
+                        $config->save('concrete5_graphql_websocket::websocket.servers', []);
                         $websocketsPorts = $this->post('WEBSOCKET_PORTS');
                         foreach ($websocketsPorts as $websocketsPort) {
                             $hasServerAlready = false;
                             foreach ($servers as $port => $pid) {
                                 if ($port == $websocketsPort) {
                                     $hasServerAlready = true;
-                                    $config->save('websocket.servers.' . $websocketsPort, $pid);
+                                    $config->save('concrete5_graphql_websocket::websocket.servers.' . $websocketsPort, $pid);
                                 }
                             }
                             if (!$hasServerAlready) {
-                                $config->save('websocket.servers.' . $websocketsPort, '');
+                                $config->save('concrete5_graphql_websocket::websocket.servers.' . $websocketsPort, '');
                             }
                         }
                     } else {
-                        $config->save('websocket.debug', false);
-                        $servers = (array) ($config->get('websocket.servers'));
-                        $config->save('websocket.servers', []);
+                        $config->save('concrete5_graphql_websocket::websocket.debug', false);
+                        $servers = (array) ($config->get('concrete5_graphql_websocket::websocket.servers'));
+                        $config->save('concrete5_graphql_websocket::websocket.servers', []);
                         foreach ($servers as $port => $pid) {
                             $pid = (int) $pid;
                             if ($pid > 0) {
@@ -109,7 +108,7 @@ class Graphql extends DashboardPageController
 
     public function restartWebsocketServer()
     {
-        $config = PackageHelpers::getFileConfig($this->app);
+        $config = $this->app->make('config');
 
         if (!$this->token->validate('ccm-restart_websockets')) {
             throw new Exception($this->token->getErrorMessage());
@@ -136,11 +135,11 @@ class Graphql extends DashboardPageController
             $pid = (int) $pid;
             $currentPort = 0;
 
-            $servers = (array) ($config->get('websocket.servers'));
+            $servers = (array) ($config->get('concrete5_graphql_websocket::websocket.servers'));
             foreach ($servers as $port => $oldPid) {
                 if ($pid == $oldPid) {
                     $currentPort = $port;
-                    $config->save('websocket.servers.' . $port, '');
+                    $config->save('concrete5_graphql_websocket::websocket.servers.' . $port, '');
                 }
             }
             $success &= WebsocketHelpers::stop($pid);
@@ -162,7 +161,7 @@ class Graphql extends DashboardPageController
 
     public function stopWebsocketServer()
     {
-        $config = PackageHelpers::getFileConfig($this->app);
+        $config = $this->app->make('config');
 
         if (!$this->token->validate('ccm-stop_websocket')) {
             throw new Exception($this->token->getErrorMessage());
@@ -188,10 +187,10 @@ class Graphql extends DashboardPageController
         foreach ($pids as $pid) {
             $pid = (int) $pid;
 
-            $servers = (array) ($config->get('websocket.servers'));
+            $servers = (array) ($config->get('concrete5_graphql_websocket::websocket.servers'));
             foreach ($servers as $port => $oldPid) {
                 if ($pid == $oldPid) {
-                    $config->save('websocket.servers.' . $port, '');
+                    $config->save('concrete5_graphql_websocket::websocket.servers.' . $port, '');
                 }
             }
             $success &= WebsocketHelpers::stop($pid);
@@ -244,7 +243,7 @@ class Graphql extends DashboardPageController
 
     public function removeWebsocketServer()
     {
-        $config = PackageHelpers::getFileConfig($this->app);
+        $config = $this->app->make('config');
 
         if (!$this->token->validate('ccm-remove_websocket')) {
             throw new Exception($this->token->getErrorMessage());
@@ -259,8 +258,8 @@ class Graphql extends DashboardPageController
         $port = (int) $rawPort;
         $pid = (int) $rawPid;
 
-        $servers = (array) ($config->get('websocket.servers'));
-        $config->save('websocket.servers', []);
+        $servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
+        $config->save('concrete5_graphql_websocket::websocket.servers', []);
         foreach ($servers as $oldPort => $oldPid) {
             if ($pid > 0 && $pid == $oldPid) {
                 $success = WebsocketHelpers::stop($pid);
@@ -269,7 +268,7 @@ class Graphql extends DashboardPageController
                     throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
                 }
             } elseif ($port !== $oldPort) {
-                $config->save('websocket.servers.' . $oldPort, $oldPid);
+                $config->save('concrete5_graphql_websocket::websocket.servers.' . $oldPort, $oldPid);
             }
         }
 
