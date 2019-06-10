@@ -74,7 +74,7 @@ class Controller extends Package
         if (DIRECTORY_SEPARATOR === '\\') {
             $dir = @sys_get_temp_dir();
             if ($dir) {
-                $logFile = rtrim(str_replace('\\', '/', $dir), '/') . 'subscription_server.log';
+                $logFile = rtrim(str_replace('\\', '/', $dir), '/') . '/subscription_server.log';
             }
         }
         $config->save('concrete5_graphql_websocket::websocket.debug_log', $logFile);
