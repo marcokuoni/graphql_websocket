@@ -168,7 +168,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                     <?php
                                 } else {
                                     ?>
-                                        <a class="btn btn-success" data-port="<?= $port ?>" name="start-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Start this websocket server, disconnects all clients.') ?></a>
+                                        <a class="btn btn-success" data-port="<?= $port ?>" name="start-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Start this websocket server') ?></a>
                                     <?php
                                 }
                                 ?>
