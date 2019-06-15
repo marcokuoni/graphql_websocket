@@ -126,9 +126,9 @@ class WebsocketService
 
             if ($pid > 0) {
                 if ($port > 0) {
-                    SilerGraphQL\subscriptions_at('ws://127.0.0.1:' . $port . '/');
+                    SilerGraphQL\subscriptions_at("ws://127.0.0.1:{$port}/");
                 } else {
-                    SilerGraphQL\subscriptions_at('ws://127.0.0.1:3000/');
+                    SilerGraphQL\subscriptions_at("ws://127.0.0.1:3000/");
                 }
             }
         }
