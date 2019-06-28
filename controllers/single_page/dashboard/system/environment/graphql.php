@@ -2,6 +2,7 @@
 
 namespace Concrete\Package\Concrete5GraphqlWebsocket\Controller\SinglePage\Dashboard\System\Environment;
 
+use Concrete\Core\Error\UserMessageException;
 use Concrete\Core\Http\ResponseFactoryInterface;
 use Concrete\Core\Page\Controller\DashboardPageController;
 use Concrete\Core\Utility\Service\Validation\Numbers;
@@ -113,12 +114,12 @@ class Graphql extends DashboardPageController
         $config = $this->app->make('config');
 
         if (!$this->token->validate('ccm-restart_websockets')) {
-            throw new Exception($this->token->getErrorMessage());
+            throw new UserMessageException($this->token->getErrorMessage());
         }
         $valn = $this->app->make(Numbers::class);
         $rawPids = $this->request->request->get('pids');
         if (!is_array($rawPids)) {
-            throw new Exception(sprintf('Invalid parameters: %s', 'pids'));
+            throw new UserMessageException(sprintf('Invalid parameters: %s', 'pids'));
         }
         $pids = [];
         foreach ($rawPids as $rawPid) {
@@ -149,7 +150,8 @@ class Graphql extends DashboardPageController
 
             if (!$success) {
                 throw new Exception(sprintf('Did not work use "sudo kill %s" on the server console and refresh this site afterwards.', $pid));
-            } elseif ($currentPort > 0) {
+            }
+            if ($currentPort > 0) {
                 $websocketService->start($currentPort);
             }
         }
@@ -167,7 +169,7 @@ class Graphql extends DashboardPageController
         $config = $this->app->make('config');
 
         if (!$this->token->validate('ccm-stop_websocket')) {
-            throw new Exception($this->token->getErrorMessage());
+            throw new UserMessageException($this->token->getErrorMessage());
         }
         $valn = $this->app->make(Numbers::class);
         $rawPids = $this->request->request->get('pids');
@@ -215,7 +217,7 @@ class Graphql extends DashboardPageController
     public function startWebsocketServer()
     {
         if (!$this->token->validate('ccm-start_websocket')) {
-            throw new Exception($this->token->getErrorMessage());
+            throw new UserMessageException($this->token->getErrorMessage());
         }
         $valn = $this->app->make(Numbers::class);
         $rawPorts = $this->request->request->get('ports');
@@ -250,7 +252,7 @@ class Graphql extends DashboardPageController
         $config = $this->app->make('config');
 
         if (!$this->token->validate('ccm-remove_websocket')) {
-            throw new Exception($this->token->getErrorMessage());
+            throw new UserMessageException($this->token->getErrorMessage());
         }
         $valn = $this->app->make(Numbers::class);
         $rawPid = $this->request->request->get('pid');
@@ -284,5 +286,24 @@ class Graphql extends DashboardPageController
         }
 
         return $this->app->make(ResponseFactoryInterface::class)->json(true);
+    }
+
+    public function getConnectedClients()
+    {
+        if (!$this->token->validate('ccm-count-clients')) {
+            throw new UserMessageException($this->token->getErrorMessage());
+        }
+        $ports = $this->request->request->get('ports');
+        $ports = is_array($ports) ? array_filter(array_map('intval', $ports)) : [];
+        if ($ports === []) {
+            throw new Exception(sprintf('Invalid parameters: %s', 'ports'));
+        }
+        $websocketService = $this->app->make(WebsocketService::class);
+        $result = [];
+        foreach ($ports as $port) {
+            $result[$port] = $websocketService->getClientsCount($port);
+        }
+
+        return $this->app->make(ResponseFactoryInterface::class)->json($result);
     }
 }

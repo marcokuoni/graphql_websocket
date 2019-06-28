@@ -163,46 +163,60 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                     <?= $form->text('WEBSOCKET_PORTS[]', 3000) ?>
                                 </div>
                             </div>
-                        <?php
-                    } else {
-                        $count = 0;
-                        foreach ($websocket_servers as $port => $pid) {
-                            ?>
+                            <?php
+                        } else {
+                            $count = 0;
+                            foreach ($websocket_servers as $port => $pid) {
+                                $pid = (int) $pid;
+                                ?>
                                 <div class="servers" data-pid="<?= $pid ?>">
-                                    <h4><?= ($count + 1) . '. ' . t('Server') . (((int) $pid > 0) ? ' ' . t('currently running on pid:') . ' ' . $pid : '') ?></h4>
+                                    <h4><?= $count + 1 ?>. <?= $pid === 0 ? t('Server') : t('Server currently running on pid: %s', $pid) ?></h4>
                                     <?php
-                                    if ((int) $pid > 0) {
+                                    if ($pid !== 0) {
                                         ?>
                                         <a class="btn btn-danger" data-pid="<?= $pid ?>" name="stop-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Stop this websocket server, disconnects all clients.') ?></a>
-                                    <?php
-                                } else {
-                                    ?>
+                                        <?php
+                                    } else {
+                                        ?>
                                         <a class="btn btn-success" data-port="<?= $port ?>" name="start-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Start this websocket server') ?></a>
-                                    <?php
-                                }
-                                ?>
+                                        <?php
+                                    }
+                                    ?>
                                     <a class="btn btn-danger" data-pid="<?= $pid ?>" data-port="<?= $port ?>" name="remove-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Remove Server') ?></a>
                                     <div class="form-group">
                                         <?= $form->label('WEBSOCKET_PORTS[]', t('Port')) ?>
                                         <?php
-                                        if ((int) $pid > 0) {
+                                        if ($pid !== 0) {
                                             ?>
                                             <?= $form->hidden('WEBSOCKET_PORTS[]', (int) $port) ?>
                                             <p><?= t('Stop this websocket server to change the port %s', (int) $port) ?></p>
-                                        <?php
-                                    } else {
-                                        ?>
+                                            <?php
+                                        } else {
+                                            ?>
                                             <?= $form->text('WEBSOCKET_PORTS[]', (int) $port) ?>
+                                            <?php
+                                        }
+                                        ?>
+                                    </div>
+                                    <?php
+                                    if ($pid !== 0) {
+                                        ?>
+                                        <div class="form-group">
+                                            <?= $form->label('', t('Connected clients')) ?>
+                                            <div class="form-control ccm-input-text" data-clients-counter-for-port="<?= $port ?>">
+                                                <span></span>
+                                                <i class="fa fa-spinner fa-spin pull-right"></i>
+                                            </div>
+                                        </div>
                                         <?php
                                     }
                                     ?>
-                                    </div>
                                 </div>
                                 <?php
                                 ++$count;
                             }
                         }
-                        ?>
+                    ?>
                     </div>
 
                     <a class="btn btn-primary" name="add-server" href="javascript:void(0);"><?= t('Add Server') ?></a>
@@ -489,5 +503,54 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
         });
 
         $('input[name=DISABLING_INTROSPECTION]:checked').trigger('change');
+
+        function updateClientsConnected() {
+            var ports = [],
+                $list = $('[data-clients-counter-for-port]');
+            $list.each(function() {
+                var port = parseInt($(this).data('clients-counter-for-port'), 10);
+                if (port && ports.indexOf(port) < 0) {
+                	ports.push(port);
+                }
+            });
+            if (ports.length === 0) {
+                return;
+            }
+            $list.find('i').show();
+            $.ajax({
+            	cache: false,
+                data: {
+                    <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('ccm-count-clients'))?>,
+                    ports: ports
+                },
+                dataType: 'json',
+                method: 'POST',
+                url: <?= json_encode((string) $view->action('getConnectedClients')) ?>
+            })
+            .done(function(data) {
+            	$list.find('span').text('?');
+                if (data) {
+                    $.each(data, function(port, clients) {
+                        if (clients !== null) {
+                        	$list.filter('[data-clients-counter-for-port="' + port + '"]').find('span').text(clients);
+                        }
+                    });
+                }
+            })
+            .fail(function() {
+            	$list.find('span').text('?');
+            })
+            .always(function() {
+            	$list.find('i').hide();
+                setTimeout(
+                    function() {
+                	   updateClientsConnected();
+                    },
+                    1000
+                );
+            });
+        }
+        updateClientsConnected();
+        
     });
 </script>
