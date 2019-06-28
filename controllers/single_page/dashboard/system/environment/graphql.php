@@ -26,6 +26,7 @@ class Graphql extends DashboardPageController
         $this->set('max_query_depth', $max_query_depth);
         $this->set('limiting_query_depth', (bool) ($max_query_depth > 0));
         $this->set('disabling_introspection', (bool) $config->get('concrete5_graphql_websocket::graphql.disabling_introspection'));
+        $this->set('logPath', str_replace('/', DIRECTORY_SEPARATOR, $config->get('concrete5_graphql_websocket::websocket.debug_log')));
     }
 
     public function update_entity_settings()
