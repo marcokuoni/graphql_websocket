@@ -1,12 +1,21 @@
 <?php
-/* @var Concrete\Core\Form\Service\Form $form */
-/* @var Concrete\Core\Html\Service\Html $html */
-/* @var Concrete\Core\Page\View\PageView $this */
-/* @var Concrete\Core\Validation\CSRF\Token $token */
-/* @var Concrete\Core\Page\View\PageView $view */
-
-/* @var bool $doctrine_dev_mode */
-/* @var Doctrine\ORM\Mapping\Driver\AnnotationDriver[] $drivers */
+/**
+ * @var Concrete\Core\Form\Service\Form $form
+ * @var Concrete\Core\Html\Service\Html $html
+ * @var Concrete\Core\Page\View\PageView $this
+ * @var Concrete\Core\Validation\CSRF\Token $token
+ * @var Concrete\Core\Page\View\PageView $view
+ * @var array $websocket_servers
+ * @var bool $websocket_has_servers
+ * @var bool $websocket_debug
+ * @var bool $graphql_dev_mode
+ * @var int $max_query_complexity
+ * @var bool $query_complexity_analysis
+ * @var int $max_query_depth
+ * @var bool $limiting_query_depth
+ * @var bool $disabling_introspection
+ * @var string $logPath
+ */
 
 defined('C5_EXECUTE') or die('Access Denied.');
 use Concrete5GraphqlWebsocket\SchemaBuilder;
@@ -203,7 +212,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                         <div class="radio">
                             <label>
                                 <?= $form->radio('WEBSOCKET_DEBUG', 'yes', $websocket_debug) ?>
-                                <span><?= t('On - Writes echo in /var/log/subscription_server.log') ?></span>
+                                <span><?= t('On - Writes echo in %s', h($logPath)) ?></span>
                             </label>
                         </div>
 
