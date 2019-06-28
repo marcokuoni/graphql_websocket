@@ -287,4 +287,23 @@ class Graphql extends DashboardPageController
 
         return $this->app->make(ResponseFactoryInterface::class)->json(true);
     }
+
+    public function getConnectedClients()
+    {
+        if (!$this->token->validate('ccm-count-clients')) {
+            throw new UserMessageException($this->token->getErrorMessage());
+        }
+        $ports = $this->request->request->get('ports');
+        $ports = is_array($ports) ? array_filter(array_map('intval', $ports)) : [];
+        if ($ports === []) {
+            throw new Exception(sprintf('Invalid parameters: %s', 'ports'));
+        }
+        $websocketService = $this->app->make(WebsocketService::class);
+        $result = [];
+        foreach ($ports as $port) {
+            $result[$port] = $websocketService->getClientsCount($port);
+        }
+
+        return $this->app->make(ResponseFactoryInterface::class)->json($result);
+    }
 }

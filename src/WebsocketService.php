@@ -128,9 +128,70 @@ class WebsocketService
                 if ($port > 0) {
                     SilerGraphQL\subscriptions_at("ws://127.0.0.1:{$port}/");
                 } else {
-                    SilerGraphQL\subscriptions_at("ws://127.0.0.1:3000/");
+                    SilerGraphQL\subscriptions_at('ws://127.0.0.1:3000/');
                 }
             }
         }
+    }
+
+    /**
+     * Get the number of client connected to a server running on a specific port.
+     *
+     * @param int $port
+     *
+     * @return int|null returns NULL in case of problems, the number of clients otherwise
+     */
+    public function getClientsCount($port)
+    {
+        $port = (int) $port;
+        $servers = (array) $this->config->get('concrete5_graphql_websocket::websocket.servers');
+        $pid = isset($servers[$port]) ? (int) $servers[$port] : 0;
+        if ($pid === 0) {
+            // Server not running (or invalid $port specified)
+            return null;
+        }
+        $rc = -1;
+        $output = [];
+        if ($this->isWindows) {
+            $count = 0;
+            foreach (['TCP', 'TCPv6'] as $proto) {
+                // -n: show numeric addresses and ports
+                // -p TCP: show TCPv4 connections
+                // -p TCPv6: show TCPv6 connections
+                // -o: display the ID of the process owning the connection
+                @exec("netstat -n -p {$proto} -o 2>&1", $output, $rc);
+                if ($rc !== 0 || empty($output)) {
+                    return null;
+                }
+                foreach ($output as $line) {
+                    $line = trim(preg_replace('/\s+/', ' ', $line));
+                    if (preg_match("/^TCP \S+:{$port} .* ESTABLISHED {$pid}$/", $line)) {
+                        ++$count;
+                    }
+                }
+                if ($count !== 0) {
+                    return $count;
+                }
+            }
+
+            return $count;
+        }
+        // -n: don't resolve names
+        // -t: TCP connections
+        // -p: display PID/Program name for sockets
+        // -a: display all sockets
+        @exec('netstat -ntpa 2>&1', $output, $rc);
+        if ($rc !== 0 || empty($output)) {
+            return null;
+        }
+        $count = 0;
+        foreach ($output as $line) {
+            $line = trim(preg_replace('/\s+/', ' ', $line));
+            if (preg_match("/^tcp \d+ \d+ \S+:{$port} .* ESTABLISHED {$pid}\//", $line)) {
+                ++$count;
+            }
+        }
+
+        return $count;
     }
 }
