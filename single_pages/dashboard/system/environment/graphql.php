@@ -1,4 +1,5 @@
 <?php
+
 /**
  * @var Concrete\Core\Form\Service\Form $form
  * @var Concrete\Core\Html\Service\Html $html
@@ -18,6 +19,7 @@
  */
 
 defined('C5_EXECUTE') or die('Access Denied.');
+
 use Concrete5GraphqlWebsocket\SchemaBuilder;
 
 ?>
@@ -59,8 +61,8 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
                     </div>
                 <?php
-            }
-            ?>
+                }
+                ?>
                 <div class="form-group">
                     <?= $form->label('MAX_QUERY_COMPLEXITY', t('Max Query Complexity')) ?>
                     <?= $form->text('MAX_QUERY_COMPLEXITY', (int) $max_query_complexity > 0 ? (int) $max_query_complexity : 100) ?>
@@ -90,8 +92,8 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
                     </div>
                 <?php
-            }
-            ?>
+                }
+                ?>
                 <div class="form-group">
                     <div class="form-group">
                         <?= $form->label('MAX_QUERY_DEPTH', t('Max Query Depth')) ?>
@@ -123,8 +125,8 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
                     </div>
                 <?php
-            }
-            ?>
+                }
+                ?>
             </div>
             <div class="radio">
                 <label>
@@ -163,7 +165,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                     <?= $form->text('WEBSOCKET_PORTS[]', 3000) ?>
                                 </div>
                             </div>
-                            <?php
+                        <?php
                         } else {
                             $count = 0;
                             foreach ($websocket_servers as $port => $pid) {
@@ -175,11 +177,11 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                     if ($pid !== 0) {
                                         ?>
                                         <a class="btn btn-danger" data-pid="<?= $pid ?>" name="stop-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Stop this websocket server, disconnects all clients.') ?></a>
-                                        <?php
+                                    <?php
                                     } else {
                                         ?>
                                         <a class="btn btn-success" data-port="<?= $port ?>" name="start-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Start this websocket server') ?></a>
-                                        <?php
+                                    <?php
                                     }
                                     ?>
                                     <a class="btn btn-danger" data-pid="<?= $pid ?>" data-port="<?= $port ?>" name="remove-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Remove Server') ?></a>
@@ -190,11 +192,11 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                             ?>
                                             <?= $form->hidden('WEBSOCKET_PORTS[]', (int) $port) ?>
                                             <p><?= t('Stop this websocket server to change the port %s', (int) $port) ?></p>
-                                            <?php
+                                        <?php
                                         } else {
                                             ?>
                                             <?= $form->text('WEBSOCKET_PORTS[]', (int) $port) ?>
-                                            <?php
+                                        <?php
                                         }
                                         ?>
                                     </div>
@@ -208,7 +210,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                                 <i class="fa fa-spinner fa-spin pull-right"></i>
                                             </div>
                                         </div>
-                                        <?php
+                                    <?php
                                     }
                                     ?>
                                 </div>
@@ -216,7 +218,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                 ++$count;
                             }
                         }
-                    ?>
+                        ?>
                     </div>
 
                     <a class="btn btn-primary" name="add-server" href="javascript:void(0);"><?= t('Add Server') ?></a>
@@ -237,17 +239,34 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                             </label>
                         </div>
                     </div>
+
+                    <div class="form-group" style="margin-top: 30px;">
+                        <label class="launch-tooltip" data-placement="right" title="<?= t('Websocket autostart modus starts all websocket servers automatically after each request, if they are not already running') ?>"><?= t('Autostart Mode') ?></label>
+                        <div class="radio">
+                            <label>
+                                <?= $form->radio('WEBSOCKET_AUTOSTART', 'yes', $websocket_autostart) ?>
+                                <span><?= t('On - Autostart websocket servers') ?></span>
+                            </label>
+                        </div>
+
+                        <div class="radio">
+                            <label>
+                                <?= $form->radio('WEBSOCKET_AUTOSTART', 'no', !$websocket_autostart) ?>
+                                <span><?= t('Off') ?></span>
+                            </label>
+                        </div>
+                    </div>
                 </div>
             </div>
         <?php
-    } else {
-        ?>
+        } else {
+            ?>
             <div class="help-block">
                 <?= t('You can just start a websocket server if there are GraphQL Schemas defined and built. Use the "GraphQL Development Mode" or the button here in the footer to build it.') ?>
             </div>
         <?php
-    }
-    ?>
+        }
+        ?>
         <div class="form-group">
             <div class="radio">
                 <label>
@@ -267,8 +286,8 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                 ?>
                 <a class="pull-left btn btn-danger" name="restart-servers" style="margin-left: 15px;" href="javascript:void(0);"><?= t('Restart websocket servers, disconnects all clients.') ?></a>
             <?php
-        }
-        ?>
+            }
+            ?>
             <button class="pull-right btn btn-primary" type="submit"><?= t('Save') ?></button>
         </div>
     </div>
@@ -510,7 +529,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
             $list.each(function() {
                 var port = parseInt($(this).data('clients-counter-for-port'), 10);
                 if (port && ports.indexOf(port) < 0) {
-                	ports.push(port);
+                    ports.push(port);
                 }
             });
             if (ports.length === 0) {
@@ -518,39 +537,39 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
             }
             $list.find('i').show();
             $.ajax({
-            	cache: false,
-                data: {
-                    <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('ccm-count-clients'))?>,
-                    ports: ports
-                },
-                dataType: 'json',
-                method: 'POST',
-                url: <?= json_encode((string) $view->action('getConnectedClients')) ?>
-            })
-            .done(function(data) {
-            	$list.find('span').text('?');
-                if (data) {
-                    $.each(data, function(port, clients) {
-                        if (clients !== null) {
-                        	$list.filter('[data-clients-counter-for-port="' + port + '"]').find('span').text(clients);
-                        }
-                    });
-                }
-            })
-            .fail(function() {
-            	$list.find('span').text('?');
-            })
-            .always(function() {
-            	$list.find('i').hide();
-                setTimeout(
-                    function() {
-                	   updateClientsConnected();
+                    cache: false,
+                    data: {
+                        <?= json_encode($token::DEFAULT_TOKEN_NAME) ?>: <?= json_encode($token->generate('ccm-count-clients')) ?>,
+                        ports: ports
                     },
-                    1000
-                );
-            });
+                    dataType: 'json',
+                    method: 'POST',
+                    url: <?= json_encode((string) $view->action('getConnectedClients')) ?>
+                })
+                .done(function(data) {
+                    $list.find('span').text('?');
+                    if (data) {
+                        $.each(data, function(port, clients) {
+                            if (clients !== null) {
+                                $list.filter('[data-clients-counter-for-port="' + port + '"]').find('span').text(clients);
+                            }
+                        });
+                    }
+                })
+                .fail(function() {
+                    $list.find('span').text('?');
+                })
+                .always(function() {
+                    $list.find('i').hide();
+                    setTimeout(
+                        function() {
+                            updateClientsConnected();
+                        },
+                        1000
+                    );
+                });
         }
         updateClientsConnected();
-        
+
     });
 </script>

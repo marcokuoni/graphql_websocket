@@ -19,6 +19,7 @@ class Graphql extends DashboardPageController
         $this->set('websocket_servers', $websocket_servers);
         $this->set('websocket_has_servers', (bool) (count(array_keys($websocket_servers)) > 0));
         $this->set('websocket_debug', (bool) $config->get('concrete5_graphql_websocket::websocket.debug'));
+        $this->set('websocket_autostart', (bool) $config->get('concrete5_graphql_websocket::websocket.autostart'));
         $this->set('graphql_dev_mode', (bool) $config->get('concrete5_graphql_websocket::graphql.graphql_dev_mode'));
         $max_query_complexity = (int) $config->get('concrete5_graphql_websocket::graphql.max_query_complexity');
         $this->set('max_query_complexity', $max_query_complexity);
@@ -41,6 +42,7 @@ class Graphql extends DashboardPageController
                 $restartWebsocket = ' ' . t('Restart the websocket server with the button on the footer to refresh also there GraphQL schema');
                 $gdm = $this->post('GRAPHQL_DEV_MODE') === 'yes';
                 $wd = $this->post('WEBSOCKET_DEBUG') === 'yes';
+                $wa = $this->post('WEBSOCKET_AUTOSTART') === 'yes';
                 $w = $this->post('WEBSOCKET') === 'yes';
                 $qca = $this->post('QUERY_COMPLEXITY_ANALYSIS') === 'yes';
                 $lqd = $this->post('LIMITING_QUERY_DEPTH') === 'yes';
@@ -73,6 +75,7 @@ class Graphql extends DashboardPageController
 
                     if ($w) {
                         $config->save('concrete5_graphql_websocket::websocket.debug', $wd);
+                        $config->save('concrete5_graphql_websocket::websocket.autostart', $wa);
                         $servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
                         $config->save('concrete5_graphql_websocket::websocket.servers', []);
                         $websocketsPorts = $this->post('WEBSOCKET_PORTS');
@@ -90,6 +93,7 @@ class Graphql extends DashboardPageController
                         }
                     } else {
                         $config->save('concrete5_graphql_websocket::websocket.debug', false);
+                        $config->save('concrete5_graphql_websocket::websocket.autostart', false);
                         $servers = (array) ($config->get('concrete5_graphql_websocket::websocket.servers'));
                         $config->save('concrete5_graphql_websocket::websocket.servers', []);
                         $websocketService = $this->app->make(WebsocketService::class);

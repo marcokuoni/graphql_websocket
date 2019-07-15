@@ -135,6 +135,7 @@ class SchemaBuilder
         $app = Facade::getFacadeApplication();
         $app->make(WebsocketService::class)->setSubscriptionAt();
         SecurityHelper::setSecurities();
+        WebsocketHelper::autostartWebsocketServers();
         $config = $app->make('config');
         
 
