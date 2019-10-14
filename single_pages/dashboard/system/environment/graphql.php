@@ -55,7 +55,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
             </div>
             <div data-fields="QUERY_COMPLEXITY_ANALYSIS" style="padding-left: 30px;">
                 <?php
-                if (count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
+                if (isset($websocket_servers) && count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
                     ?>
                     <div class="help-block">
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
@@ -86,7 +86,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
             </div>
             <div data-fields="LIMITING_QUERY_DEPTH" style="padding-left: 30px;">
                 <?php
-                if (count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
+                if (isset($websocket_servers) && count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
                     ?>
                     <div class="help-block">
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
@@ -119,7 +119,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
             </div>
             <div data-fields="DISABLING_INTROSPECTION" style="padding-left: 30px;">
                 <?php
-                if (count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
+                if (isset($websocket_servers) && count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
                     ?>
                     <div class="help-block">
                         <?= t('All websocket servers have to be restarted to take effect on them') ?>
@@ -156,8 +156,8 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                 <div data-fields="simple" style="padding-left: 30px;">
                     <div class="servers-container">
                         <?php
-                        if (count($websocket_servers) === 0) {
-                            ?>
+                            if (!isset($websocket_servers) || count($websocket_servers) === 0) {
+                                ?>
                             <div class="servers">
                                 <h4><?= '1. ' . t('Server') ?></h4>
                                 <div class="form-group">
@@ -165,44 +165,44 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                     <?= $form->text('WEBSOCKET_PORTS[]', 3000) ?>
                                 </div>
                             </div>
-                        <?php
-                        } else {
-                            $count = 0;
-                            foreach ($websocket_servers as $port => $pid) {
-                                $pid = (int) $pid;
-                                ?>
+                            <?php
+                                } else {
+                                    $count = 0;
+                                    foreach ($websocket_servers as $port => $pid) {
+                                        $pid = (int) $pid;
+                                        ?>
                                 <div class="servers" data-pid="<?= $pid ?>">
                                     <h4><?= $count + 1 ?>. <?= $pid === 0 ? t('Server') : t('Server currently running on pid: %s', $pid) ?></h4>
                                     <?php
-                                    if ($pid !== 0) {
-                                        ?>
+                                                if ($pid !== 0) {
+                                                    ?>
                                         <a class="btn btn-danger" data-pid="<?= $pid ?>" name="stop-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Stop this websocket server, disconnects all clients.') ?></a>
                                     <?php
-                                    } else {
-                                        ?>
+                                                } else {
+                                                    ?>
                                         <a class="btn btn-success" data-port="<?= $port ?>" name="start-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Start this websocket server') ?></a>
                                     <?php
-                                    }
-                                    ?>
+                                                }
+                                                ?>
                                     <a class="btn btn-danger" data-pid="<?= $pid ?>" data-port="<?= $port ?>" name="remove-server" style="margin-bottom:15px;" href="javascript:void(0);"><?= t('Remove Server') ?></a>
                                     <div class="form-group">
                                         <?= $form->label('WEBSOCKET_PORTS[]', t('Port')) ?>
                                         <?php
-                                        if ($pid !== 0) {
-                                            ?>
+                                                    if ($pid !== 0) {
+                                                        ?>
                                             <?= $form->hidden('WEBSOCKET_PORTS[]', (int) $port) ?>
                                             <p><?= t('Stop this websocket server to change the port %s', (int) $port) ?></p>
                                         <?php
-                                        } else {
-                                            ?>
+                                                    } else {
+                                                        ?>
                                             <?= $form->text('WEBSOCKET_PORTS[]', (int) $port) ?>
                                         <?php
-                                        }
-                                        ?>
+                                                    }
+                                                    ?>
                                     </div>
                                     <?php
-                                    if ($pid !== 0) {
-                                        ?>
+                                                if ($pid !== 0) {
+                                                    ?>
                                         <div class="form-group">
                                             <?= $form->label('', t('Connected clients')) ?>
                                             <div class="form-control ccm-input-text" data-clients-counter-for-port="<?= $port ?>">
@@ -211,14 +211,14 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
                                             </div>
                                         </div>
                                     <?php
-                                    }
-                                    ?>
+                                                }
+                                                ?>
                                 </div>
-                                <?php
-                                ++$count;
+                        <?php
+                                    ++$count;
+                                }
                             }
-                        }
-                        ?>
+                            ?>
                     </div>
 
                     <a class="btn btn-primary" name="add-server" href="javascript:void(0);"><?= t('Add Server') ?></a>
@@ -282,7 +282,7 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
         <div class="ccm-dashboard-form-actions">
             <button class="pull-left btn btn-danger" name="refresh" value="1" type="submit"><?= t('Refresh GraphQL Schema') ?></button>
             <?php
-            if (count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
+            if (isset($websocket_servers) && count($websocket_servers) > 0 && (int) array_values($websocket_servers)[0] > 0) {
                 ?>
                 <a class="pull-left btn btn-danger" name="restart-servers" style="margin-left: 15px;" href="javascript:void(0);"><?= t('Restart websocket servers, disconnects all clients.') ?></a>
             <?php
