@@ -5,6 +5,7 @@
     "license": "MIT",
     "minimum-stability": "stable",
     "require": {
+        "textalk/websocket": "1.0.*",
         "concrete5/core": "^8.5.1",
         "leocavalcante/siler": "^1.5",
         "webonyx/graphql-php": "^0.13.1",
