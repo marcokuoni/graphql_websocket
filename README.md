@@ -1,3 +1,6 @@
+## Error with new siler version
+We are waiting for the update, as long here the work around https://github.com/leocavalcante/siler/pull/224
+
 # GraphQL Websocket Concrete5 Composer Package
 The idea of this repo is to include GraphQL and Websockets in Concrete5. It adds the ability to use graphql and websockets on a standard apache hosting with concrete5.
 
