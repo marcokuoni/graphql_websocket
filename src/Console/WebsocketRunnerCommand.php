@@ -53,10 +53,11 @@ EOT
         }
         $this->output->write("Starting running server with PID {$pid}\n\n\n");
         $config->save('concrete5_graphql_websocket::websocket.servers.' . $port, $pid);
-        // SilerGraphQL\subscriptions($schema, [], $serverIP, $port)->run();
+        
+        SilerGraphQL\subscriptions($schema, [], $serverIP, $port)->run();
 
-        $manager = SilerGraphQL\subscriptions_manager($schema, [], [], []);
-        $server = graphql_subscriptions($manager, $port, $serverIP);
-        $server->start();
+        // $manager = SilerGraphQL\subscriptions_manager($schema, [], [], []);
+        // $server = graphql_subscriptions($manager, $port, $serverIP);
+        // $server->start();
     }
 }
