@@ -5,7 +5,8 @@ use Concrete\Core\Config\Repository\Repository;
 use Concrete\Core\Console\Command;
 use Concrete5GraphqlWebsocket\SchemaBuilder;
 use Siler\GraphQL as SilerGraphQL;
-use Siler\SubscriptionManager;
+use Concrete5GraphqlWebsocket\WebsocketService;
+use Concrete\Core\Support\Facade\Application as App;
 
 use function Siler\Swoole\graphql_subscriptions;
 use function Siler\Swoole\json;

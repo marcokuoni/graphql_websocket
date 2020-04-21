@@ -138,6 +138,26 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
     </fieldset>
 
     <fieldset>
+        <legend><?= t('GraphQL Security Settings') ?></legend>
+        <div class="form-group">
+            <label class="launch-tooltip" for="auth_secret_key" data-placement="right" title="<?= t('Secret Key for JWT signing, will be just visible for super user. If you change it, all token getting invalidated') ?>"><?= t('Secret Key, if activated') ?></label>
+            <div class="form-group">
+                <div class="form-group">
+                    <?= $form->text('auth_secret_key', (string) $auth_secret_key !== '' ? (string) $auth_secret_key : t('You are not super user and not able to change or view the secret key')) ?>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label class="launch-tooltip" for="auth_secret_key" data-placement="right" title="<?= t('When your auth server is running on a other url set it here') ?>"><?= t('Auth Server Url') ?></label>
+            <div class="form-group">
+                <div class="form-group">
+                    <?= $form->text('auth_server_url', (string) $auth_server_url) ?>
+                </div>
+            </div>
+        </div>
+    </fieldset>
+
+    <fieldset>
         <legend><?= t('Websocket') ?></legend>
         <?php
         if (SchemaBuilder::hasSchema()) {

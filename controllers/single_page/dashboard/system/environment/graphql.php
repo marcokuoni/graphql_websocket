@@ -9,12 +9,19 @@ use Concrete\Core\Utility\Service\Validation\Numbers;
 use Concrete5GraphqlWebsocket\SchemaBuilder;
 use Concrete5GraphqlWebsocket\WebsocketService;
 use Exception;
+use Concrete\Core\Support\Facade\Application as App;
+use Concrete\Core\User\User;
 
 class Graphql extends DashboardPageController
 {
     public function view()
     {
         $config = $this->app->make('config');
+        $currentUser = App::make(User::class);
+        if ((int) $currentUser->getUserID() === 1) {
+            $auth_secret_key = (string) $config->get('concrete5_graphql_websocket::graphql.auth_secret_key');
+            $this->set('auth_secret_key', $auth_secret_key);
+        }
         $websocket_servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
         $this->set('websocket_servers', $websocket_servers);
         $this->set('websocket_has_servers', (bool) (count(array_keys($websocket_servers)) > 0));
@@ -29,6 +36,8 @@ class Graphql extends DashboardPageController
         $this->set('limiting_query_depth', (bool) ($max_query_depth > 0));
         $this->set('disabling_introspection', (bool) $config->get('concrete5_graphql_websocket::graphql.disabling_introspection'));
         $this->set('logPath', str_replace('/', DIRECTORY_SEPARATOR, $config->get('concrete5_graphql_websocket::websocket.debug_log')));
+        $auth_server_url = (String) $config->get('concrete5_graphql_websocket::graphql.auth_server_url');
+        $this->set('auth_server_url', $auth_server_url);
     }
 
     public function update_entity_settings()
@@ -47,6 +56,7 @@ class Graphql extends DashboardPageController
                 $qca = $this->post('QUERY_COMPLEXITY_ANALYSIS') === 'yes';
                 $lqd = $this->post('LIMITING_QUERY_DEPTH') === 'yes';
                 $di = $this->post('DISABLING_INTROSPECTION') === 'yes';
+                $auth_server_url = (String) $this->post('auth_server_url');
 
                 if ($this->request->request->get('refresh')) {
                     SchemaBuilder::refreshSchemaMerge();
@@ -71,6 +81,14 @@ class Graphql extends DashboardPageController
                     }
                     if ($gdm) {
                         SchemaBuilder::refreshSchemaMerge();
+                    }
+
+                    $currentUser = App::make(User::class);
+                    if ((int) $currentUser->getUserID() === 1) {
+                        $config->save('concrete5_graphql_websocket::graphql.auth_secret_key', (string) $this->post('auth_secret_key'));
+                    }
+                    if (isset($auth_server_url) && $auth_server_url !== '') {
+                        $config->save('concrete5_graphql_websocket::graphql.auth_server_url', $auth_server_url);
                     }
 
                     if ($w) {

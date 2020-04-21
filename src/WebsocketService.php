@@ -6,6 +6,7 @@ defined('C5_EXECUTE') or die('Access Denied.');
 
 use Concrete\Core\Config\Repository\Repository;
 use Siler\GraphQL as SilerGraphQL;
+use Concrete\Core\Support\Facade\Application as App;
 
 class WebsocketService
 {
@@ -193,5 +194,23 @@ class WebsocketService
         }
 
         return $count;
+    }
+
+    public function startListeningToOnConnect()
+    {
+        SilerGraphQL\listen(SilerGraphQL\ON_CONNECT, function ($context) {
+            $user = null;
+
+            $tokenHelper = App::make(\Concrete5GraphqlWebsocket\TokenHelper::class);
+            if (is_array($context)) {
+                $context = $context['Authorization'];
+            }
+            $token = $tokenHelper->getTokenFromAuthHeader($context);
+            if ($token) {
+                $user = $tokenHelper->validateToken($token);
+            }
+
+            return ['user' => $user];
+        });
     }
 }

@@ -11,7 +11,7 @@ use Concrete5GraphqlWebsocket\WebsocketService;
 class Controller extends Package
 {
     protected $appVersionRequired = '8.5.1';
-    protected $pkgVersion = '1.3.13';
+    protected $pkgVersion = '1.4.0';
     protected $pkgHandle = 'concrete5_graphql_websocket';
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
@@ -26,6 +26,10 @@ class Controller extends Package
         if ($this->app->isRunThroughCommandLineInterface()) {
             $this->registerCLICommands();
         }
+
+        $this->app->singleton('\Concrete5GraphqlWebsocket\Helpers\HasAccess');
+        $websocketService = $this->app->make(WebsocketService::class);
+        $websocketService->startListeningToOnConnect();
     }
 
     public function install()
