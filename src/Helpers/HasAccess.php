@@ -10,7 +10,7 @@ use Concrete\Core\Support\Facade\Application as App;
 
 class HasAccess
 {
-    public static function checkByGroup($context, $groups = ['Administrators'])
+    public static function checkByGroup($context, $groups = [])
     {
         $user = $context['user'];
         $userId = (int) $user->uID;
@@ -20,8 +20,7 @@ class HasAccess
             }
 
             foreach ($groups as $group) {
-                $groupItem = Group::getByName($group);
-                if ($groupItem && $user->inGroup($groupItem)) {
+                if (in_array($group, $user->uGroups)) {
                     return true;
                 };
             }
@@ -34,6 +33,10 @@ class HasAccess
     {
         $config = App::make('config');
         $zoneGroups = (array) $config->get($zone);
-        return self::checkByGroup($context, $zoneGroups || []);
+        if (count($zoneGroups) > 0) {
+            return self::checkByGroup($context, $zoneGroups);
+        } else {
+            return self::checkByGroup($context);
+        }
     }
 }
