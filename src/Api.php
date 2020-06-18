@@ -15,6 +15,11 @@ class Api extends Controller
 {
     public function view()
     {
+        if (Request\method_is('options')){
+            Response\cors();
+            return new JsonResponse(null, 200);
+        }
+        
         if (Request\method_is('post')) {
             Response\cors();
             $user = null;
