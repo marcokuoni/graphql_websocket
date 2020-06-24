@@ -7,7 +7,7 @@
     "require": {
         "textalk/websocket": "^1.2",
         "concrete5/core": "^8.5.1",
-        "leocavalcante/siler": "dev-master",
+        "leocavalcante/siler": "dev-main",
         "webonyx/graphql-php": "^0.13.1",
         "cboden/ratchet": "^0.4.1",
         "ratchet/pawl": "^0.3.4"
