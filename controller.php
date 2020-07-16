@@ -11,7 +11,7 @@ use Concrete5GraphqlWebsocket\WebsocketService;
 class Controller extends Package
 {
     protected $appVersionRequired = '8.5.1';
-    protected $pkgVersion = '1.4.4';
+    protected $pkgVersion = '1.4.5';
     protected $pkgHandle = 'concrete5_graphql_websocket';
     protected $pkgName = 'GraphQL with Websocket';
     protected $pkgDescription = 'This Package brings the power of GraphQL and Websockets to Concrete5';
