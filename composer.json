@@ -9,6 +9,7 @@
         "leocavalcante/siler": "^1.7.2",
         "webonyx/graphql-php": "^14.0.0",
         "cboden/ratchet": "^0.4.1",
-        "ratchet/pawl": "^0.3.4"
+        "ratchet/pawl": "^0.3.4",
+        "firebase/php-jwt": "^5.2.0"
     }
 }
