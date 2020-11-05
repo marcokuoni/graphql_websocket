@@ -20,7 +20,7 @@ class HasAccess
             }
 
             foreach ($groups as $group) {
-                if (in_array($group, $user->uGroups)) {
+                if (in_array($group, $user->uGroupsPath)) {
                     return true;
                 };
             }
