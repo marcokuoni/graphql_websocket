@@ -16,12 +16,14 @@ class Api extends Controller
     public function view()
     {
         if (Request\method_is('options')){
-            Response\cors();
+            // Normally not needed
+            // Response\cors();
             return new JsonResponse(null, 200);
         }
         
         if (Request\method_is('post')) {
-            Response\cors();
+            // Normally not needed
+            // Response\cors();
             $user = null;
 
             $tokenHelper = App::make(\Concrete5GraphqlWebsocket\TokenHelper::class);
