@@ -26,7 +26,7 @@ class HasAccess
             }
         }
 
-        throw new UserMessageException('Access denied', 401);
+        throw false
     }
 
     public static function check($context, $zone)
