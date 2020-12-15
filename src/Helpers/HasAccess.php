@@ -26,7 +26,7 @@ class HasAccess
             }
         }
 
-        throw false
+        return false;
     }
 
     public static function check($context, $zone)
