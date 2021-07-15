@@ -75,7 +75,7 @@ class TokenHelper
             if ($error->getMessage() === 'Expired token') {
                 throw new UserMessageException(t('Expired token'), 401);
             } else {
-                throw new UserMessageException($auth_server_url . t('The JWT Token is invalid').$token->iss, 401);
+                throw new UserMessageException($auth_server_url . t('The JWT Token is invalid'), 401);
             }
         }
 
