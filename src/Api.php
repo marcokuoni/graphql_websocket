@@ -8,6 +8,7 @@ use Concrete\Core\Controller\Controller;
 use Siler\Http\Request;
 use Siler\GraphQL as SilerGraphQL;
 use Siler\Http\Response;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Concrete\Core\Support\Facade\Application as App;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -24,6 +25,10 @@ class Api extends Controller
         if (Request\method_is('post')) {
             // Normally not needed
             // Response\cors();
+
+
+            App::make[EventDispatcherInterface::class]->dispatch('on_before_token_validate');
+
             $user = null;
 
             $tokenHelper = App::make(\Concrete5GraphqlWebsocket\TokenHelper::class);
