@@ -25,9 +25,7 @@ class Api extends Controller
         if (Request\method_is('post')) {
             // Normally not needed
             // Response\cors();
-
-
-            App::make[EventDispatcherInterface::class]->dispatch('on_before_token_validate');
+            App::make(EventDispatcherInterface::class)->dispatch('on_before_token_validate');
 
             $user = null;
 
