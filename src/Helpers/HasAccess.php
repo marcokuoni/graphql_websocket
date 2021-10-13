@@ -24,6 +24,8 @@ class HasAccess
                     return true;
                 };
             }
+        } else if ($userId === 0 && count($groups) === 0) {
+            return true;
         }
 
         return false;
