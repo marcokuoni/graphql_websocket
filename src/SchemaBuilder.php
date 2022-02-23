@@ -18,6 +18,7 @@ class SchemaBuilder
 
     protected static $schema = [];
     protected static $resolver = [];
+    protected static $directive = [];
     protected static $basePath = DIR_CONFIG_SITE . '/graphql';
     protected static $mergeSchemaFileName = 'merged_schema.gql';
 
@@ -35,6 +36,11 @@ class SchemaBuilder
     public static function registerResolverForMerge(array $resolver)
     {
         self::$resolver = array_merge_recursive($resolver, self::$resolver);
+    }
+
+    public static function registerDirective(array $directive)
+    {
+        self::$directive = array_merge($directive, self::$directive);
     }
 
     public static function refreshSchemaMerge()
@@ -137,7 +143,10 @@ class SchemaBuilder
         SecurityHelper::setSecurities();
         WebsocketHelper::autostartWebsocketServers();
         $config = $app->make('config');
-        
+
+        if(count(self::$directive) > 0) {
+            SilerGraphQL\directives(self::$directive);
+        }        
 
         if (count(self::$resolver) > 0) {
             if (file_exists(self::$basePath . '/' . self::$mergeSchemaFileName)) {
