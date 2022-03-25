@@ -21,6 +21,9 @@ class Graphql extends DashboardPageController
         if ((int) $currentUser->getUserID() === 1) {
             $auth_secret_key = (string) $config->get('concrete5_graphql_websocket::graphql.auth_secret_key');
             $this->set('auth_secret_key', $auth_secret_key);
+
+            $corsOrigins = (string) implode(', ', $config->get('concrete5_graphql_websocket::graphql.corsOrigins'));
+            $this->set('corsOrigins', $corsOrigins);
         }
         $websocket_servers = (array) $config->get('concrete5_graphql_websocket::websocket.servers');
         $this->set('websocket_servers', $websocket_servers);
@@ -57,6 +60,7 @@ class Graphql extends DashboardPageController
                 $lqd = $this->post('LIMITING_QUERY_DEPTH') === 'yes';
                 $di = $this->post('DISABLING_INTROSPECTION') === 'yes';
                 $auth_server_url = (String) $this->post('auth_server_url');
+                $corsOrigins = (string) $this->post('corsOrigins');
 
                 if ($this->request->request->get('refresh')) {
                     SchemaBuilder::refreshSchemaMerge();
@@ -86,6 +90,10 @@ class Graphql extends DashboardPageController
                     $currentUser = App::make(User::class);
                     if ((int) $currentUser->getUserID() === 1) {
                         $config->save('concrete5_graphql_websocket::graphql.auth_secret_key', (string) $this->post('auth_secret_key'));
+
+                        if (isset($corsOrigins) && $corsOrigins !== '') {
+                            $config->save('concrete5_graphql_websocket::graphql.corsOrigins', explode(',', $corsOrigins));
+                        }
                     }
                     if (isset($auth_server_url) && $auth_server_url !== '') {
                         $config->save('concrete5_graphql_websocket::graphql.auth_server_url', $auth_server_url);

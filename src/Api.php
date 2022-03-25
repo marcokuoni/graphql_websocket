@@ -7,7 +7,6 @@ defined('C5_EXECUTE') or die('Access Denied.');
 use Concrete\Core\Controller\Controller;
 use Siler\Http\Request;
 use Siler\GraphQL as SilerGraphQL;
-use Siler\Http\Response;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Concrete\Core\Support\Facade\Application as App;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -16,15 +15,20 @@ class Api extends Controller
 {
     public function view()
     {
+        $origins = Config::get('concrete5_graphql_websocket::graphql.corsOrigins');
+        if(in_array($_SERVER['HTTP_ORIGIN'], $origins)) {
+            header('Access-Control-Allow-Credentials: true');
+            header('Access-Control-Max-Age: 600');
+            header('Access-Control-Allow-Origin', $_SERVER['HTTP_ORIGIN']);
+            header('Access-Control-Allow-Headers', $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
+            header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+        }
+
         if (Request\method_is('options')){
-            // Normally not needed
-            // Response\cors();
-            return new JsonResponse(null, 200);
+            return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
         }
         
         if (Request\method_is('post')) {
-            // Normally not needed
-            // Response\cors();
             App::make(EventDispatcherInterface::class)->dispatch('on_before_token_validate');
 
             $user = null;
@@ -35,7 +39,7 @@ class Api extends Controller
                 try {
                     $user = $tokenHelper->validateToken($token);
                 } catch (\Exception $e) {
-                    return new JsonResponse($e, 401);
+                    return new JsonResponse($e, JsonResponse::HTTP_UNAUTHORIZED);
                 }
             }
 

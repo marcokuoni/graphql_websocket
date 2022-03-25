@@ -148,6 +148,14 @@ use Concrete5GraphqlWebsocket\SchemaBuilder;
             </div>
         </div>
         <div class="form-group">
+            <label class="launch-tooltip" for="corsOrigins" data-placement="right" title="<?= t('Allowed cors origin') ?>"><?= t('CORS Origins') ?></label>
+            <div class="form-group">
+                <div class="form-group">
+                    <?= $form->text('corsOrigins', (string) $corsOrigins !== '' ? (string) $corsOrigins : t('You are not super user and not able to change or view the secret key'), ['placeholder' => $_SERVER['HTTP_ORIGIN']]) ?>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
             <label class="launch-tooltip" for="auth_secret_key" data-placement="right" title="<?= t('When your auth server is running on a other url set it here') ?>"><?= t('Auth Server Url') ?></label>
             <div class="form-group">
                 <div class="form-group">
