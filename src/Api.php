@@ -15,7 +15,8 @@ class Api extends Controller
 {
     public function view()
     {
-        $origins = Config::get('concrete5_graphql_websocket::graphql.corsOrigins');
+        $config = App::make('config');
+        $origins = $config->get('concrete5_graphql_websocket::graphql.corsOrigins');
         if(in_array($_SERVER['HTTP_ORIGIN'], $origins)) {
             header('Access-Control-Allow-Credentials: true');
             header('Access-Control-Max-Age: 600');
