@@ -10,25 +10,18 @@ use Siler\GraphQL as SilerGraphQL;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Concrete\Core\Support\Facade\Application as App;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Concrete5GraphqlWebsocket\Helpers\Cors;
 
 class Api extends Controller
 {
     public function view()
     {
-        $config = App::make('config');
-        $origins = $config->get('concrete5_graphql_websocket::graphql.corsOrigins');
-        if(in_array($_SERVER['HTTP_ORIGIN'], $origins)) {
-            header('Access-Control-Allow-Credentials: true');
-            header('Access-Control-Max-Age: 600');
-            header('Access-Control-Allow-Origin', $_SERVER['HTTP_ORIGIN']);
-            header('Access-Control-Allow-Headers', $_SERVER['HTTP_ACCESS_CONTROL_REQUEST_HEADERS']);
-            header('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-        }
+        Cors::setCors();
 
-        if (Request\method_is('options')){
+        if (Request\method_is('options')) {
             return new JsonResponse(null, JsonResponse::HTTP_NO_CONTENT);
         }
-        
+
         if (Request\method_is('post')) {
             App::make(EventDispatcherInterface::class)->dispatch('on_before_token_validate');
 
