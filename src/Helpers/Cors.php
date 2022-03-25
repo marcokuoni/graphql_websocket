@@ -26,4 +26,3 @@ class Cors
         }
     }
 }
-date etag
