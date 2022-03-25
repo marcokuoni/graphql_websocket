@@ -92,7 +92,7 @@ class Graphql extends DashboardPageController
                         $config->save('concrete5_graphql_websocket::graphql.auth_secret_key', (string) $this->post('auth_secret_key'));
 
                         if (isset($corsOrigins) && $corsOrigins !== '') {
-                            $config->save('concrete5_graphql_websocket::graphql.corsOrigins', explode(',', $corsOrigins));
+                            $config->save('concrete5_graphql_websocket::graphql.corsOrigins', array_map(function(string $item): string { return trim($item); }, explode(',', $corsOrigins)));
                         }
                     }
                     if (isset($auth_server_url) && $auth_server_url !== '') {
