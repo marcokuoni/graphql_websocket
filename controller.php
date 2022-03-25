@@ -27,7 +27,8 @@ class Controller extends Package
             $this->registerCLICommands();
         }
 
-        $this->app->singleton('\Concrete5GraphqlWebsocket\Helpers\HasAccess');
+        $this->app->singleton(\Concrete5GraphqlWebsocket\Helpers\HasAccess::class);
+        $this->app->singleton(\Concrete5GraphqlWebsocket\Helpers\Cors::class);
         $websocketService = $this->app->make(WebsocketService::class);
         $websocketService->startListeningToOnConnect();
     }
